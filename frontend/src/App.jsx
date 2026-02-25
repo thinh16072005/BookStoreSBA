@@ -14,6 +14,7 @@ import ActiveAccount from './layout/user/ActiveAccount';
 import LoginPage from './layout/user/LoginPage';
 import ProfilePage from './layout/user/ProfilePage';
 import {ForgotPassword} from "./layout/user/ForgotPassword";
+import {FeedbackCustomerPage} from "./layout/pages/feedback/FeedbackCustomerPage";
 
 const MyRoutes = () => {
 
@@ -39,6 +40,7 @@ const MyRoutes = () => {
 
                 <Route path='/profile' element={<ProfilePage />} />
                 <Route path='/forgot-password' element={<ForgotPassword />} />
+                <Route path="/feedback" element={<FeedbackCustomerPage />} />
 
                 {!isAdminPath && (
                     <Route path='*' element={<Error404Page />} />
