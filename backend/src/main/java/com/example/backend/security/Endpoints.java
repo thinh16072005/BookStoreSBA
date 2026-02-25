@@ -13,13 +13,16 @@ public class Endpoints {
             "/genre/**",
             "/images/**",
             "/feedbacks/**",
-            "/feedbacks"
+            "/feedbacks",
+            "/favorite-book/**",
+            "/favorite-books/**",
     };
 
     // Phương thức POST không cần xác thực
     public static final String[] PUBLIC_POST = {
             "/user/register",
             "/user/authenticate",
+            "/favorite-book/**",
     };
 
     // Phương thức PUT không cần xác thực
@@ -29,6 +32,7 @@ public class Endpoints {
 
     // Phương thức DELETE không cần xác thực
     public static final String[] PUBLIC_DELETE = {
+            "/favorite-book/**",
     };
 
     // Phương thức ADMIN_ENDPOINT cần xác thực quyền ADMIN
