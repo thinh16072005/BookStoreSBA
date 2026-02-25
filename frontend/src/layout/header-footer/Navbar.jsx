@@ -2,7 +2,14 @@
 import { Avatar, Button } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import {
+	getAvatarByToken,
+	getLastNameByToken,
+	getRoleByToken,
+	isToken,
+	logout,
 
+} from "../utils/JwtService";
 
 const Navbar = (props) => {
 	const navigate = useNavigate();
@@ -66,7 +73,7 @@ return (
 							</Link>
 						</li>
 
-						{/* {isToken() && (
+						{isToken() && (
 							<li className="nav-item">
 								<NavLink className="nav-link" to="/feedback"> Feedback </NavLink>
 							</li>
@@ -76,7 +83,7 @@ return (
 							<li className="nav-item">
 								<NavLink className="nav-link" to="/my-reviews"> Đánh giá sách </NavLink>
 							</li>
-						)} */}
+						)}
 
 					</ul>
 					{/* <!-- Left links --> */}
@@ -90,7 +97,7 @@ return (
 
 					</Link>
 
-						{/* {!isToken() && (
+						{!isToken() && (
 						<div>
 							<Link to={"/login"}>
 								<Button>Đăng nhập</Button>
@@ -99,12 +106,12 @@ return (
 								<Button>Đăng ký</Button>
 							</Link>
 						</div>
-					)} */}
+					)}
 
-					{/* {isToken() && (
+					{isToken() && (
 						<>
 
-							
+							{/* <!-- Avatar --> */}
 							<div className='dropdown'>
 								<a
 									className='dropdown-toggle d-flex align-items-center hidden-arrow'
@@ -162,7 +169,7 @@ return (
 								</ul>
 							</div>
 						</>
-					)} */}
+					)}
 					</div>
 				{/* <!-- Right elements --> */}
 			</div>

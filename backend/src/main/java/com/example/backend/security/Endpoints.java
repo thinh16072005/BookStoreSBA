@@ -9,18 +9,20 @@ public class Endpoints {
                         "/books",
                         "/books/**",
                         "/users/**",
+                        "/user/active-account",
                         "/genre/**",
                         "/images/**",
         };
 
         // Phương thức POST không cần xác thực
         public static final String[] PUBLIC_POST = {
-
+                        "/user/register",
+                        "/user/authenticate",
         };
 
         // Phương thức PUT không cần xác thực
         public static final String[] PUBLIC_PUT = {
-
+                        "/user/forgot-password",
         };
 
         // Phương thức DELETE không cần xác thực
