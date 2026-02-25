@@ -15,6 +15,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
+import com.example.backend.service.JWT.JwtFilter;
+import com.example.backend.service.userSecurity.UserSecurityService;
 
 import java.util.Arrays;
 
@@ -27,6 +29,19 @@ public class SecurityConfiguration {
         return new BCryptPasswordEncoder();
     }
 
+    @Autowired
+    private JwtFilter jwtFilter ;
+
+    // Khi đăng nhập thì sẽ vào hàm này đầu tiên để kiểm tra
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider(UserSecurityService userSecurityService) {
+        DaoAuthenticationProvider dap = new DaoAuthenticationProvider();
+        // Dùng userSecurityService để load user từ csdl
+        dap.setUserDetailsService(userSecurityService);
+        // Dùng passwordEncoder để so sánh password
+        dap.setPasswordEncoder(passwordEncoder());
+        return dap;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -62,6 +77,8 @@ public class SecurityConfiguration {
             });
         });
 
+        // Thêm filter JWT vào filter chain trước filter xác thực
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         // Cấu hình không tạo session
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
