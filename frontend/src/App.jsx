@@ -15,6 +15,7 @@ import LoginPage from './layout/user/LoginPage';
 import ProfilePage from './layout/user/ProfilePage';
 import {ForgotPassword} from "./layout/user/ForgotPassword";
 import {FeedbackCustomerPage} from "./layout/pages/feedback/FeedbackCustomerPage";
+import MyFavoriteBooksPage from "./layout/pages/MyFavoriteBooksPage.jsx";
 
 const MyRoutes = () => {
 
@@ -37,7 +38,7 @@ const MyRoutes = () => {
                 <Route path='/register' element={<RegisterPage />} />
                 <Route path='/active/:email/:activationCode' element={<ActiveAccount />} />
                 <Route path='/login' element={<LoginPage />} />
-
+                <Route path='/my-favorite-books' element={<MyFavoriteBooksPage />} />
                 <Route path='/profile' element={<ProfilePage />} />
                 <Route path='/forgot-password' element={<ForgotPassword />} />
                 <Route path="/feedback" element={<FeedbackCustomerPage />} />
