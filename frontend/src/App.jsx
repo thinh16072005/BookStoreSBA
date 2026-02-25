@@ -11,6 +11,7 @@ import About from './layout/about/About';
 import FilterableBookList from './layout/products/FilterableBookList';
 import RegisterPage from './layout/user/RegisterPage';
 import ActiveAccount from './layout/user/ActiveAccount';
+import LoginPage from './layout/user/LoginPage';
 
 const MyRoutes = () => {
 
@@ -32,6 +33,7 @@ const MyRoutes = () => {
                 <Route path='/products' element={<FilterableBookList />} />
                 <Route path='/register' element={<RegisterPage />} />
                 <Route path='/active/:email/:activationCode' element={<ActiveAccount />} />
+                <Route path='/login' element={<LoginPage />} />
 
                 {!isAdminPath && (
                     <Route path='*' element={<Error404Page />} />
