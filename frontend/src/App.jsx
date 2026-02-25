@@ -1,18 +1,41 @@
-import React from 'react';
-import { Route, Routes } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import HomePage from './layout/pages/HomePage';
+import { Error404Page } from './layout/pages/errorpage/404Page';
+import { Error403Page } from './layout/pages/errorpage/403Page';
+import Navbar from './layout/header-footer/Navbar';
+import Footer from './layout/header-footer/Footer';
+import PolicyPage from './layout/pages/PolicyPage';
+import About from './layout/about/About';
+import FilterableBookList from './layout/products/FilterableBookList';
 
 const MyRoutes = () => {
 
+    const [reloadAvatar, setReloadAvatar] = useState(0);
+    const location = useLocation();
+    const isAdminPath = location.pathname.startsWith("/admin");
+
     return (
         <>
+            {!isAdminPath && <Navbar key={reloadAvatar} />}
 
             <Routes>
                 {/* Customer Routes */}
                 <Route path='/' element={<HomePage />} />
+                <Route path='/error-403' element={<Error403Page />} />
+                <Route path='/error-404' element={<Error404Page />} />
+                <Route path='/policy' element={<PolicyPage />} />
+                <Route path='/about' element={<About />} />
+                <Route path='/products' element={<FilterableBookList />} />
 
+
+                {!isAdminPath && (
+                    <Route path='*' element={<Error404Page />} />
+                )}
             </Routes>
+
+            {!isAdminPath && <Footer />}
 
         </>
     );
