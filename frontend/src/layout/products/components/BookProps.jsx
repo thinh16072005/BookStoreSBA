@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
+import BookModel from "../../../model/BookModel";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { IconButton, Tooltip } from "@mui/material";
 import { getAllImageByBook } from "../../../api/ImageApi";
+import ImageModel from "../../../model/ImageModel";
 import { addFavoriteBook, removeFavoriteBook, getFavoriteBooksByUser } from "../../../api/FavouriteBookApi";
 import { getIdUserByToken, isToken } from "../../utils/JwtService";
+import { endpointBE } from "../../utils/Constant";
 import { toast } from "react-toastify";
+import { getCartAllByIdUser, updateQuantityCartItem } from "../../../api/CartApi";
 
 const BookProps = ({ book, onRemove, isFavoritePage = false }) => {
     const navigation = useNavigate();
@@ -42,8 +46,57 @@ const BookProps = ({ book, onRemove, isFavoritePage = false }) => {
         }
     };
 
- 
-    
+    // Xử lý thêm sản phẩm vào giỏ hàng
+    const handleAddProduct = async (book) => {
+
+        //Xử lý khi đã có sách sẵn trong giỏ hàng
+        const cartList = await getCartAllByIdUser();
+        //Xử dụng find để tìm sách trong giỏ hàng
+        const existing = cartList.find(
+            (cartItem) => cartItem.book?.idBook === book.idBook
+        );
+
+        if (existing) {
+            existing.quantity = (existing.quantity || 1) + 1;
+            try {
+                await updateQuantityCartItem(existing);
+            } catch (error) {
+                console.error(error);
+            }
+            return;
+        }
+
+
+        const endPoint = endpointBE + "/cart-item/add-item";
+
+        const token = localStorage.getItem("token");
+        const idUser = Number(getIdUserByToken());
+
+        try {
+            const response = await toast.promise(
+                fetch(endPoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-type": "application/json",
+                        "Authorization": "Bearer " + token,
+                    },
+                    body: JSON.stringify({
+                        idBook: book.idBook,
+                        quantity: 1,
+                        idUser: idUser,
+                    }),
+                }),
+                { pending: "Đang trong quá trình xử lý ..." }
+            );
+            if (response.ok) {
+                toast.success("Đã thêm sản phẩm vào giỏ hàng");
+            } else {
+                toast.error("Đã xảy ra lỗi");
+            }
+        } catch (error) {
+            toast.error("Đã xảy ra lỗi");
+        }
+    }
 
 
     // Xử lý thêm/xóa yêu thích
@@ -165,7 +218,7 @@ const BookProps = ({ book, onRemove, isFavoritePage = false }) => {
                                 <Tooltip title='Thêm vào giỏ hàng'>
                                     <button
                                         className='btn btn-primary btn-block'
-                                        // onClick={isToken() ? () => handleAddProduct(book) : () => navigation("/login")}
+                                        onClick={isToken() ? () => handleAddProduct(book) : () => navigation("/login")}
 
                                     >
                                         <i className='fas fa-shopping-cart'></i>
