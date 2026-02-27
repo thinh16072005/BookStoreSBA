@@ -16,6 +16,7 @@ import ProfilePage from './layout/user/ProfilePage';
 import {ForgotPassword} from "./layout/user/ForgotPassword";
 import {FeedbackCustomerPage} from "./layout/pages/feedback/FeedbackCustomerPage";
 import MyFavoriteBooksPage from "./layout/pages/MyFavoriteBooksPage.jsx";
+import CartPage from "./layout/pages/CartPage.jsx";
 
 const MyRoutes = () => {
 
@@ -42,6 +43,7 @@ const MyRoutes = () => {
                 <Route path='/profile' element={<ProfilePage />} />
                 <Route path='/forgot-password' element={<ForgotPassword />} />
                 <Route path="/feedback" element={<FeedbackCustomerPage />} />
+                <Route path='/cart' element={<CartPage />} />
 
                 {!isAdminPath && (
                     <Route path='*' element={<Error404Page />} />
