@@ -18,6 +18,7 @@ import {FeedbackCustomerPage} from "./layout/pages/feedback/FeedbackCustomerPage
 import MyFavoriteBooksPage from "./layout/pages/MyFavoriteBooksPage.jsx";
 import CartPage from "./layout/pages/CartPage.jsx";
 import BookDetail from "./layout/products/BookDetail.jsx";
+import {PaymentSuccessPage} from "./layout/pages/PaymentSuccessPage.jsx";
 
 const MyRoutes = () => {
 
@@ -46,6 +47,7 @@ const MyRoutes = () => {
                 <Route path="/feedback" element={<FeedbackCustomerPage />} />
                 <Route path='/cart' element={<CartPage />} />
                 <Route path='/book/:idBook' element={<BookDetail />} />
+                <Route path='/payment-success' element={<PaymentSuccessPage />} />
 
                 {!isAdminPath && (
                     <Route path='*' element={<Error404Page />} />
