@@ -2,13 +2,12 @@ package com.example.backend.dao;
 
 // thêm hàm tìm sách chưa đánh giá
 
-import com.example.backend.dto.BookToReviewDTO;
 import com.example.backend.entity.Order;
+import com.example.backend.entity.OrderDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
-import com.example.backend.entity.OrderDetail;
 
 import java.util.List;
 
