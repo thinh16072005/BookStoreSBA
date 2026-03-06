@@ -19,6 +19,7 @@ import MyFavoriteBooksPage from "./layout/pages/MyFavoriteBooksPage.jsx";
 import CartPage from "./layout/pages/CartPage.jsx";
 import BookDetail from "./layout/products/BookDetail.jsx";
 import {PaymentSuccessPage} from "./layout/pages/PaymentSuccessPage.jsx";
+import {MyPurchasedBooks} from "./layout/pages/myPurchased/MyPurchasedBooks.jsx";
 
 const MyRoutes = () => {
 
@@ -48,6 +49,7 @@ const MyRoutes = () => {
                 <Route path='/cart' element={<CartPage />} />
                 <Route path='/book/:idBook' element={<BookDetail />} />
                 <Route path='/payment-success' element={<PaymentSuccessPage />} />
+                <Route path="/my-reviews" element={<MyPurchasedBooks />} />
 
                 {!isAdminPath && (
                     <Route path='*' element={<Error404Page />} />
