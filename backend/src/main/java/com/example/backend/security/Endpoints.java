@@ -16,7 +16,8 @@ public class Endpoints {
             "/feedbacks",
             "/favorite-book/**",
             "/favorite-books/**",
-            "/cart-items/**"
+            "/cart-items/**",
+            "/orders/**",
     };
 
     // Phương thức POST không cần xác thực
@@ -29,6 +30,7 @@ public class Endpoints {
     // Phương thức PUT không cần xác thực
     public static final String[] PUBLIC_PUT = {
             "/user/forgot-password",
+            "/order/**",
     };
 
     // Phương thức DELETE không cần xác thực
