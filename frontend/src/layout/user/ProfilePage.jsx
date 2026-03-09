@@ -24,6 +24,7 @@ import { checkPhoneNumber } from "../utils/Validation";
 import IconButton from "@mui/material/IconButton";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import { styled } from "@mui/material/styles";
+import OrderTable from "./components/OrderTable.jsx";
 
 
 const ProfilePage = () => {
@@ -609,7 +610,7 @@ const ProfilePage = () => {
                         {/* Tab Panel: Xem đơn hàng */}
                         {currentTab === 1 && (
                             <div>
-
+                                <OrderTable/>
                             </div>
                         )}
 
