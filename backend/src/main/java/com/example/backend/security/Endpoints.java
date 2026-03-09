@@ -18,6 +18,7 @@ public class Endpoints {
             "/favorite-books/**",
             "/cart-items/**",
             "/orders/**",
+            "/order-detail/**"
     };
 
     // Phương thức POST không cần xác thực
