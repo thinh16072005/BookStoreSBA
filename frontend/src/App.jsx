@@ -20,6 +20,7 @@ import CartPage from "./layout/pages/CartPage.jsx";
 import BookDetail from "./layout/products/BookDetail.jsx";
 import {PaymentSuccessPage} from "./layout/pages/PaymentSuccessPage.jsx";
 import {MyPurchasedBooks} from "./layout/pages/myPurchased/MyPurchasedBooks.jsx";
+import {OrderDetailPage} from "./layout/user/components/OrderDetailPage.jsx";
 
 const MyRoutes = () => {
 
@@ -50,6 +51,7 @@ const MyRoutes = () => {
                 <Route path='/book/:idBook' element={<BookDetail />} />
                 <Route path='/payment-success' element={<PaymentSuccessPage />} />
                 <Route path="/my-reviews" element={<MyPurchasedBooks />} />
+                <Route path='/order/:idOrder' element={<OrderDetailPage />} />
 
                 {!isAdminPath && (
                     <Route path='*' element={<Error404Page />} />
