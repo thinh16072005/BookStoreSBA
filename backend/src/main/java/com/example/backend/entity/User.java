@@ -14,9 +14,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_user")
     private int idUser; // id user
-    @Column(name = "first_name")
+    @Column(name = "first_name", columnDefinition = "NVARCHAR(255)")
     private String firstName; // Họ đệm
-    @Column(name = "last_name")
+    @Column(name = "last_name", columnDefinition = "NVARCHAR(255)")
     private String lastName; // Tên
     @Column(name = "username")
     private String username; // Tên tài khoản
@@ -30,7 +30,7 @@ public class User {
     private String email; // Email
     @Column(name = "phone_number")
     private String phoneNumber; // Số điện thoại
-    @Column(name = "delivery_address")
+    @Column(name = "delivery_address", columnDefinition = "NVARCHAR(255)")
     private String deliveryAddress; // Địa chỉ giao hàng
     @Column(name = "avatar")
     private String avatar; // Ảnh đại diện

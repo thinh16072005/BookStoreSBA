@@ -16,11 +16,11 @@ public class Order {
     private int idOrder; // Mã đơn hàng
     @Column(name = "date_created")
     private Date dateCreated; // Ngày tạo đơn hàng
-    @Column(name = "delivery_address")
+    @Column(name = "delivery_address", columnDefinition = "NVARCHAR(255)")
     private String deliveryAddress; // Địa chỉ giao hàng
     @Column(name = "phone_number")
     private String phoneNumber; // Số điện thoại (vì có thể tuỳ chỉnh)
-    @Column(name = "full_name")
+    @Column(name = "full_name", columnDefinition = "NVARCHAR(255)")
     private String fullName; // Họ và tên của khách hàng (tuỳ chỉnh)
     @Column(name = "total_price_product")
     private double totalPriceProduct; // Tổng tiền sản phẩm
@@ -30,9 +30,9 @@ public class Order {
     private double feePayment; // Chi phí thanh toán
     @Column(name = "total_price")
     private double totalPrice; // Tổng tiền
-    @Column(name = "status")
+    @Column(name = "status", columnDefinition = "NVARCHAR(20)")
     private String status; // Trạng thái của đơn hàng
-    @Column(name = "note")
+    @Column(name = "note", columnDefinition = "NVARCHAR(255)")
     private String note; // Ghi chú
 
     @Column(name = "payment_status")

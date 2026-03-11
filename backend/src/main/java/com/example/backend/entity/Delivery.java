@@ -13,9 +13,9 @@ public class Delivery {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_delivery")
     private int idDelivery; // Mã giao hàng
-    @Column(name = "name_delivery")
+    @Column(name = "name_delivery", columnDefinition = "NVARCHAR(255)")
     private String nameDelivery; // Tên giao hàng
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
     private String description; // Mô tả
     @Column(name = "fee_delivery")
     private double feeDelivery; // Chi phí giao hàng

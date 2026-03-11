@@ -15,7 +15,7 @@ public class Payment {
     private int idPayment; // Mã thanh toán
     @Column(name = "name_payment")
     private String namePayment; // Tên thanh toán
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
     private String description; // Mô tả
     @Column(name = "fee_payment")
     private double feePayment; // Chi phí thanh toán

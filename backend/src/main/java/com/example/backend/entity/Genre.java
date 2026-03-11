@@ -13,7 +13,7 @@ public class Genre {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_genre")
     private int idGenre; // Mã thể loại
-    @Column(name = "name_genre")
+    @Column(name = "name_genre", columnDefinition = "NVARCHAR(255)")
     private String nameGenre; // Tên thể loại
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})

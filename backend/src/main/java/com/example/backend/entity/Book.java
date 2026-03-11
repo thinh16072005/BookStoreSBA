@@ -20,11 +20,11 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_book")
     private int idBook; // Mã sách
-    @Column(name = "name_book")
+    @Column(name = "name_book", columnDefinition = "NVARCHAR(255)")
     private String nameBook; // Tên sách
-    @Column(name = "author")
+    @Column(name = "author", columnDefinition = "NVARCHAR(255)")
     private String author; // Tên tác giả
-    @Column(name = "description", columnDefinition = "VARCHAR(MAX)")
+    @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
     private String description; // Mô tả
     @Column(name = "list_price")
     private double listPrice; // Giá niêm yết

@@ -16,9 +16,9 @@ public class Feedbacks {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_feedback")
     private int idFeedback; //mã phản hồi
-    @Column(name = "title")
+    @Column(name = "title", columnDefinition = "NVARCHAR(255)")
     private String title; //tiêu đề phản hồi 
-    @Column(name = "comment")
+    @Column(name = "comment", columnDefinition = "NVARCHAR(255)")
     private String comment; //nội dung phản hồi
     @Column(name = "dateCreated")
     private Date dateCreated; //ngày tạo phản hồi

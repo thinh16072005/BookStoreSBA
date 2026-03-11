@@ -14,7 +14,7 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_review")
     private long idReview; // Mã đánh giá
-    @Column(name = "content")
+    @Column(name = "content", columnDefinition = "NVARCHAR(MAX)")
     private String content; // Nội dung đánh giá
     @Column(name = "rating_point")
     private float ratingPoint; // Điểm xếp hạng
