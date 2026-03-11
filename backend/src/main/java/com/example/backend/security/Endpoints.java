@@ -18,7 +18,8 @@ public class Endpoints {
             "/favorite-books/**",
             "/cart-items/**",
             "/orders/**",
-            "/order-detail/**"
+            "/order-detail/**",
+            "/coupons"
     };
 
     // Phương thức POST không cần xác thực
@@ -32,6 +33,7 @@ public class Endpoints {
     public static final String[] PUBLIC_PUT = {
             "/user/forgot-password",
             "/order/**",
+            "/coupon/**"
     };
 
     // Phương thức DELETE không cần xác thực
@@ -44,7 +46,8 @@ public class Endpoints {
     // Frontend phải gửi kèm JWT token trong header Authorization để xác thực
     public static final String[] ADMIN_ENDPOINT = {
             "/feedbacks/**",
-            "/feedbacks"
+            "/feedbacks",
+            "/coupon/**"
 
     };
 
