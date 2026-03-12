@@ -21,6 +21,8 @@ import BookDetail from "./layout/products/BookDetail.jsx";
 import {PaymentSuccessPage} from "./layout/pages/PaymentSuccessPage.jsx";
 import {MyPurchasedBooks} from "./layout/pages/myPurchased/MyPurchasedBooks.jsx";
 import {OrderDetailPage} from "./layout/user/components/OrderDetailPage.jsx";
+import AdminLayout from "./layout/admin/AdminLayout.jsx";
+import UserManagement from "./layout/admin/UserManagement.jsx";
 
 const MyRoutes = () => {
 
@@ -52,6 +54,11 @@ const MyRoutes = () => {
                 <Route path='/payment-success' element={<PaymentSuccessPage />} />
                 <Route path="/my-reviews" element={<MyPurchasedBooks />} />
                 <Route path='/order/:idOrder' element={<OrderDetailPage />} />
+
+                {/* Admin Routes */}
+                <Route path='/admin' element={<AdminLayout />}>
+                    <Route path='users' element={<UserManagement />} />
+                </Route>
 
                 {!isAdminPath && (
                     <Route path='*' element={<Error404Page />} />
