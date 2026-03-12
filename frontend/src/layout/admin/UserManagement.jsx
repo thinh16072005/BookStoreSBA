@@ -1,29 +1,28 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { endpointBE } from "../../../../../SampleSBA/BookStoreProject/frontend/src/layout/utils/Constant.js";
-import UserModel from "../../../../../SampleSBA/BookStoreProject/frontend/src/model/UserModel.js";
-import { getUsers } from "../../../../../SampleSBA/BookStoreProject/frontend/src/layout/admin/helpers/userHelpers.js";
-import RequireAdmin from "../../../../../SampleSBA/BookStoreProject/frontend/src/layout/admin/RequireAdmin.jsx";
+
 import { toast } from "react-toastify";
 //  Import từ helpers
 import {
-    formatDateToInput,
+    debugRequest,
+    debugResponse,
     formatDateDisplay,
+    formatDateToInput,
     getToken,
     handleErrorResponse,
     logRequest,
-    logResponse,
-    debugRequest,
-    debugResponse
-} from "../../../../../SampleSBA/BookStoreProject/frontend/src/layout/admin/helpers/userManagementHelpers.js";
+    logResponse
+} from "./helpers/userManagementHelpers.js";
+import {getUsers} from "./helpers/userHelpers.js";
+import {endpointBE} from "../utils/Constant.js";
+import RequireAdmin from "./RequireAdmin.jsx";
+
 //  Import từ utils
 import {
     checkExistEmail,
     checkExistUsername,
     checkPassword,
-    checkRepeatPassword,
     checkPhoneNumber,
-    validateDateOfBirth
-} from "../../../../../SampleSBA/BookStoreProject/frontend/src/layout/utils/Validation.js";
+    validateDateOfBirth } from "../utils/validation.js";
 
 // Helper để reset form
 const getEmptyUserForm = () => ({
