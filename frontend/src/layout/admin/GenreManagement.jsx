@@ -51,6 +51,39 @@ const GenreManagement = () => {
         setShowForm(true); // hiển thị form để điền thông tin
     };
 
+    const onDelete = async (id) => {
+        if (!window.confirm('Xóa thể loại này?')) return;
+
+        try {
+            // Kiểm tra xem genre có sách không
+            const bookCount = await getBookCountByGenreId(id);
+
+            if (bookCount > 0) {
+                toast.error(`Không thể xóa thể loại này vì đang có ${bookCount} quyển sách sử dụng!`);
+                return;
+            }
+
+            // Gửi request DELETE kèm token để backend xác thực quyền ADMIN
+            const response = await fetch(`${endpointBE}/genre/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}` // Gửi token để xác thực quyền ADMIN
+                }
+            });
+
+            if (response.ok || response.status === 204) {
+                toast.success("Xóa thể loại thành công!");
+                await loadGenres();
+            } else {
+                const errorText = await response.text();
+                toast.error(errorText || "Xóa thể loại thất bại!");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Đã xảy ra lỗi khi xóa!");
+        }
+    };
+
     // Hủy form: ẩn form và reset
     const onCancel = () => {
         setShowForm(false); // ẩn form
@@ -168,6 +201,7 @@ const GenreManagement = () => {
                                     <td>{g.nameGenre}</td>
                                     <td>
                                         <button className='btn btn-sm btn-outline-primary me-2' onClick={()=>onEdit(g)}>Sửa</button>
+                                        <button className='btn btn-sm btn-outline-danger' onClick={()=>onDelete(g.idGenre)}>Xóa</button>
                                     </td>
                                 </tr>
                             ))}
