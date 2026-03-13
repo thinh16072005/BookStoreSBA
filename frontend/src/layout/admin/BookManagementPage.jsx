@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { BookTable } from "../admin/book/BookTable";
+import { BookTable } from "./components/BookTable";
 import BookModel from "../../model/BookModel";
-import { BookForm } from "../admin/book/BookForm";
+import { BookForm } from "./components/BookForm";
 
 const BookManagementPage = () => {
     const [keyCountReload, setKeyCountReload] = useState(0);
