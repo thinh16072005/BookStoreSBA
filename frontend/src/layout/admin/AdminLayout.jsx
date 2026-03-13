@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import AdminSidebar from '../../../../../SampleSBA/BookStoreProject/frontend/src/layout/admin/components/AdminSidebar.jsx';
-import NotificationBell from '../../../../../SampleSBA/BookStoreProject/frontend/src/layout/admin/components/NotificationBell.jsx';
+import AdminSidebar from './components/AdminSidebar.jsx';
+import NotificationBell from './components/NotificationBell.jsx';
 
 const AdminLayout = () => {
     return (
