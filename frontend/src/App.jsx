@@ -23,6 +23,7 @@ import {MyPurchasedBooks} from "./layout/pages/myPurchased/MyPurchasedBooks.jsx"
 import {OrderDetailPage} from "./layout/user/components/OrderDetailPage.jsx";
 import AdminLayout from "./layout/admin/AdminLayout.jsx";
 import UserManagement from "./layout/admin/UserManagement.jsx";
+import BookManagementPage from "./layout/admin/BookManagementPage.jsx";
 
 const MyRoutes = () => {
 
@@ -58,6 +59,7 @@ const MyRoutes = () => {
                 {/* Admin Routes */}
                 <Route path='/admin' element={<AdminLayout />}>
                     <Route path='users' element={<UserManagement />} />
+                    <Route path='books' element={<BookManagementPage />} />
                 </Route>
 
                 {!isAdminPath && (

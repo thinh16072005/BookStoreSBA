@@ -19,7 +19,9 @@ public class Endpoints {
             "/cart-items/**",
             "/orders/**",
             "/order-detail/**",
-            "/coupons"
+            "/coupons",
+            "/books",
+            "/books/**",
     };
 
     // Phương thức POST không cần xác thực
@@ -47,7 +49,9 @@ public class Endpoints {
     public static final String[] ADMIN_ENDPOINT = {
             "/feedbacks/**",
             "/feedbacks",
-            "/coupon/**"
+            "/coupon/**",
+            "/books/**",
+
 
     };
 
