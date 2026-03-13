@@ -14,6 +14,7 @@ public class Endpoints {
             "/images/**",
             "/feedbacks/**",
             "/feedbacks",
+            "/feedback/**",
             "/favorite-book/**",
             "/favorite-books/**",
             "/cart-items/**",
@@ -27,6 +28,7 @@ public class Endpoints {
     // Phương thức POST không cần xác thực
     public static final String[] PUBLIC_POST = {
             "/user/register",
+            "/feedback/**",
             "/user/authenticate",
             "/favorite-book/**",
     };
@@ -49,10 +51,10 @@ public class Endpoints {
     public static final String[] ADMIN_ENDPOINT = {
             "/feedbacks/**",
             "/feedbacks",
+            "/feedback",
+            "/feedback/**",
             "/coupon/**",
             "/books/**",
-
-
     };
 
     // Phương thức CUSTOMER_ENDPOINT cần xác thực quyền CUSTOMER
