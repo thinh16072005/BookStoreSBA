@@ -26,6 +26,7 @@ import UserManagement from "./layout/admin/UserManagement.jsx";
 import BookManagementPage from "./layout/admin/BookManagementPage.jsx";
 import GenreManagement from "./layout/admin/GenreManagement.jsx";
 import FeedbackPage from "./layout/admin/FeedbackManagement.jsx";
+import OrderManagementPage from './layout/admin/OrderManagement';
 
 const MyRoutes = () => {
 
@@ -64,6 +65,8 @@ const MyRoutes = () => {
                     <Route path='books' element={<BookManagementPage />} />
                     <Route path='genres' element={<GenreManagement />} />
                     <Route path='feedback' element={<FeedbackPage />} />
+                    <Route path='orders' element={<OrderManagementPage />} />
+
                 </Route>
 
                 {!isAdminPath && (
