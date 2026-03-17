@@ -27,6 +27,7 @@ import BookManagementPage from "./layout/admin/BookManagementPage.jsx";
 import GenreManagement from "./layout/admin/GenreManagement.jsx";
 import FeedbackPage from "./layout/admin/FeedbackManagement.jsx";
 import OrderManagementPage from './layout/admin/OrderManagement';
+import CouponManagementPage from './layout/admin/CouponManagement';
 
 const MyRoutes = () => {
 
@@ -66,6 +67,7 @@ const MyRoutes = () => {
                     <Route path='genres' element={<GenreManagement />} />
                     <Route path='feedback' element={<FeedbackPage />} />
                     <Route path='orders' element={<OrderManagementPage />} />
+                    <Route path='coupon' element={<CouponManagementPage />} />
 
                 </Route>
 
