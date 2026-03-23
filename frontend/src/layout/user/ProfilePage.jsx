@@ -96,6 +96,27 @@ const ProfilePage = () => {
         confirmPassword: "",
     });
 
+    const validatePasswordField = (field, value, sourceData = passwordData) => {
+        if (field === "currentPassword") {
+            if (!value) return "Vui lòng nhập mật khẩu hiện tại";
+            return "";
+        }
+
+        if (field === "newPassword") {
+            if (!value) return "Vui lòng nhập mật khẩu mới";
+            if (value.length < 6) return "Mật khẩu phải có ít nhất 6 ký tự";
+            return "";
+        }
+
+        if (field === "confirmPassword") {
+            if (!value) return "Vui lòng xác nhận mật khẩu";
+            if (value !== sourceData.newPassword) return "Mật khẩu xác nhận không khớp";
+            return "";
+        }
+
+        return "";
+    };
+
     // State cho upload avatar
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
@@ -270,8 +291,33 @@ const ProfilePage = () => {
 
     // Xử lý thay đổi mật khẩu
     const handlePasswordChange = (field, value) => {
-        setPasswordData({ ...passwordData, [field]: value });
-        setPasswordErrors({ ...passwordErrors, [field]: "" });
+        const nextData = { ...passwordData, [field]: value };
+        setPasswordData(nextData);
+
+        setPasswordErrors((prev) => {
+            const nextErrors = {
+                ...prev,
+                [field]: validatePasswordField(field, value, nextData),
+            };
+
+            // Khi đổi mật khẩu mới, xác nhận mật khẩu cần được kiểm tra lại ngay.
+            if (field === "newPassword" && nextData.confirmPassword) {
+                nextErrors.confirmPassword = validatePasswordField(
+                    "confirmPassword",
+                    nextData.confirmPassword,
+                    nextData
+                );
+            }
+
+            return nextErrors;
+        });
+    };
+
+    const handlePasswordBlur = (field) => {
+        setPasswordErrors((prev) => ({
+            ...prev,
+            [field]: validatePasswordField(field, passwordData[field]),
+        }));
     };
 
     // Xử lý upload avatar
@@ -349,33 +395,13 @@ const ProfilePage = () => {
         e.preventDefault();
 
         // Validation
-        let hasError = false;
         const newErrors = {
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: "",
+            currentPassword: validatePasswordField("currentPassword", passwordData.currentPassword),
+            newPassword: validatePasswordField("newPassword", passwordData.newPassword),
+            confirmPassword: validatePasswordField("confirmPassword", passwordData.confirmPassword),
         };
 
-        if (!passwordData.currentPassword) {
-            newErrors.currentPassword = "Vui lòng nhập mật khẩu hiện tại";
-            hasError = true;
-        }
-
-        if (!passwordData.newPassword) {
-            newErrors.newPassword = "Vui lòng nhập mật khẩu mới";
-            hasError = true;
-        } else if (passwordData.newPassword.length < 6) {
-            newErrors.newPassword = "Mật khẩu phải có ít nhất 6 ký tự";
-            hasError = true;
-        }
-
-        if (!passwordData.confirmPassword) {
-            newErrors.confirmPassword = "Vui lòng xác nhận mật khẩu";
-            hasError = true;
-        } else if (passwordData.newPassword !== passwordData.confirmPassword) {
-            newErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
-            hasError = true;
-        }
+        const hasError = Object.values(newErrors).some((value) => value.length > 0);
 
         if (hasError) {
             setPasswordErrors(newErrors);
@@ -754,6 +780,7 @@ const ProfilePage = () => {
                                                 placeholder='Nhập mật khẩu hiện tại'
                                                 value={passwordData.currentPassword}
                                                 onChange={(e) => handlePasswordChange("currentPassword", e.target.value)}
+                                                onBlur={() => handlePasswordBlur("currentPassword")}
                                                 error={passwordErrors.currentPassword.length > 0}
                                                 helperText={passwordErrors.currentPassword}
                                                 className='input-field'
@@ -768,6 +795,7 @@ const ProfilePage = () => {
                                                 placeholder='Nhập mật khẩu mới'
                                                 value={passwordData.newPassword}
                                                 onChange={(e) => handlePasswordChange("newPassword", e.target.value)}
+                                                onBlur={() => handlePasswordBlur("newPassword")}
                                                 error={passwordErrors.newPassword.length > 0}
                                                 helperText={passwordErrors.newPassword}
                                                 className='input-field'
@@ -782,6 +810,7 @@ const ProfilePage = () => {
                                                 placeholder='Nhập lại mật khẩu mới'
                                                 value={passwordData.confirmPassword}
                                                 onChange={(e) => handlePasswordChange("confirmPassword", e.target.value)}
+                                                onBlur={() => handlePasswordBlur("confirmPassword")}
                                                 error={passwordErrors.confirmPassword.length > 0}
                                                 helperText={passwordErrors.confirmPassword}
                                                 className='input-field'
