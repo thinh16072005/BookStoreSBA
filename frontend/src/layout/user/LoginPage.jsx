@@ -49,7 +49,7 @@ const LoginPage = () => {
                 // Nếu là ADMIN, chuyển hướng đến AdminDashboard
                 // Nếu không, chuyển hướng về HomePage
                 if (role === "ADMIN") {
-                    navigate("/admin");
+                    navigate("/admin/books");
                 } else {
                     navigate("/");
                 }

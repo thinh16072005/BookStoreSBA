@@ -253,10 +253,6 @@ const AdminSidebar = () => {
 
                 {/* ============ MENU ITEMS ============ */}
                 <nav className='sidebar-nav'>
-                    <NavLink to='/admin' end className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
-                        <i className='fas fa-chart-line'></i>
-                        <span>DASHBOARD</span>
-                    </NavLink>
                     <NavLink to='/admin/books' className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
                         <i className='fas fa-book'></i>
                         <span>QUẢN LÝ SÁCH</span>
