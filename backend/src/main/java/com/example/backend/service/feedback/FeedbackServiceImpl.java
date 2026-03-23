@@ -1,11 +1,11 @@
 package com.example.backend.service.feedback;
 
-import com.example.backend.dao.FeedBackRepository;
-import com.example.backend.dao.UserRepository;
-import com.example.backend.dto.FeedbackRequest;
-import com.example.backend.dto.FeedbackResponse;
-import com.example.backend.entity.Feedbacks;
-import com.example.backend.entity.User;
+import com.example.backend.dao.feedback.FeedBackRepository;
+import com.example.backend.dao.user.UserRepository;
+import com.example.backend.dto.request.feedback.FeedbackRequest;
+import com.example.backend.dto.response.feedback.FeedbackResponse;
+import com.example.backend.entity.feedback.Feedbacks;
+import com.example.backend.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

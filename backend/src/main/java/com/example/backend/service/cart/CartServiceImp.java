@@ -1,13 +1,13 @@
 package com.example.backend.service.cart;
 
-import com.example.backend.dao.BookRepository;
-import com.example.backend.dao.CartItemRepository;
-import com.example.backend.dao.UserRepository;
-import com.example.backend.dto.CartItemDTO;
-import com.example.backend.entity.Book;
-import com.example.backend.entity.CartItem;
-import com.example.backend.entity.Notification;
-import com.example.backend.entity.User;
+import com.example.backend.dao.book.BookRepository;
+import com.example.backend.dao.cart.CartItemRepository;
+import com.example.backend.dao.user.UserRepository;
+import com.example.backend.dto.response.cart.CartItemDTO;
+import com.example.backend.entity.book.Book;
+import com.example.backend.entity.cart.CartItem;
+import com.example.backend.entity.notification.Notification;
+import com.example.backend.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;

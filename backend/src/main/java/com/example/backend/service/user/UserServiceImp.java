@@ -1,16 +1,16 @@
 package com.example.backend.service.user;
 
-import com.example.backend.dao.RoleRepository;
-import com.example.backend.dao.UserRepository;
-import com.example.backend.dto.ChangeAvatarDTO;
-import com.example.backend.dto.ChangePasswordDTO;
-import com.example.backend.dto.UpdateProfileDTO;
-import com.example.backend.entity.Notification;
-import com.example.backend.entity.Role;
-import com.example.backend.entity.User;
-import com.example.backend.security.JwtResponse;
-import com.example.backend.security.LoginRequest;
-import com.example.backend.service.JWT.JwtService;
+import com.example.backend.dao.user.RoleRepository;
+import com.example.backend.dao.user.UserRepository;
+import com.example.backend.dto.request.user.ChangeAvatarDTO;
+import com.example.backend.dto.request.user.ChangePasswordDTO;
+import com.example.backend.dto.request.user.UpdateProfileDTO;
+import com.example.backend.entity.notification.Notification;
+import com.example.backend.entity.user.Role;
+import com.example.backend.entity.user.User;
+import com.example.backend.dto.response.auth.JwtResponse;
+import com.example.backend.dto.request.auth.LoginRequest;
+import com.example.backend.security.jwt.JwtService;
 import com.example.backend.service.UploadImage.UploadImageService;
 import com.example.backend.service.email.EmailService;
 import com.example.backend.service.util.Base64ToMultipartFileConverter;

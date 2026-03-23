@@ -1,6 +1,6 @@
 package com.example.backend.service.review;
 
-import com.example.backend.dto.BookToReviewDTO;
+import com.example.backend.dto.response.book.BookToReviewDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 
