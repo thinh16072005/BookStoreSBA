@@ -39,7 +39,22 @@ const ProfilePage = () => {
     });
 
     // Các biến thông tin cá nhân
-    const [user, setUser] = useState({
+    const [profileUser, setProfileUser] = useState({
+        idUser: 0,
+        dateOfBirth: new Date(),
+        deliveryAddress: "",
+        email: "",
+        firstName: "",
+        lastName: "",
+        gender: "",
+        password: "",
+        phoneNumber: "",
+        username: "",
+        avatar: "",
+        enabled: true,
+    });
+
+    const [editUser, setEditUser] = useState({
         idUser: 0,
         dateOfBirth: new Date(),
         deliveryAddress: "",
@@ -56,8 +71,15 @@ const ProfilePage = () => {
 
     // State cho chế độ chỉnh sửa
     const [isEditMode, setIsEditMode] = useState(false);
-    const [originalUser, setOriginalUser] = useState(null);
     const [errorPhoneNumber, setErrorPhoneNumber] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({
+        firstName: "",
+        lastName: "",
+        phoneNumber: "",
+        deliveryAddress: "",
+        dateOfBirth: "",
+        gender: "",
+    });
 
     // State cho tab navigation
     const [currentTab, setCurrentTab] = useState(0);
@@ -87,59 +109,117 @@ const ProfilePage = () => {
                     ...response,
                     dateOfBirth: new Date(response.dateOfBirth),
                 };
-                setUser(userData);
-                setOriginalUser(userData);
+                setProfileUser(userData);
+                setEditUser(userData);
             })
             .catch((error) => console.log(error));
     }, []);
 
+    const normalizeName = (value) => (value || "").trim().replace(/\s+/g, " ");
+
+    const hasRealNameChange = (next, prev) =>
+        normalizeName(next.firstName) !== normalizeName(prev.firstName) ||
+        normalizeName(next.lastName) !== normalizeName(prev.lastName);
+
+    const clearFieldError = (field) => {
+        setFieldErrors((prev) => ({ ...prev, [field]: "" }));
+    };
+
+    const validateRequiredFields = () => {
+        const nextErrors = {
+            firstName: "",
+            lastName: "",
+            phoneNumber: "",
+            deliveryAddress: "",
+            dateOfBirth: "",
+            gender: "",
+        };
+
+        if (!editUser.firstName?.trim()) nextErrors.firstName = "Vui lòng nhập họ đệm";
+        if (!editUser.lastName?.trim()) nextErrors.lastName = "Vui lòng nhập tên";
+        if (!editUser.phoneNumber?.trim()) nextErrors.phoneNumber = "Vui lòng nhập số điện thoại";
+        if (!editUser.deliveryAddress?.trim()) nextErrors.deliveryAddress = "Vui lòng nhập địa chỉ giao hàng";
+        if (!editUser.dateOfBirth) nextErrors.dateOfBirth = "Vui lòng chọn ngày sinh";
+        if (!editUser.gender?.trim()) nextErrors.gender = "Vui lòng chọn giới tính";
+
+        setFieldErrors(nextErrors);
+        return Object.values(nextErrors).every((value) => !value);
+    };
+
+
     // Xử lý thay đổi tên
     const handleFirstNameChange = (e) => {
-        setUser({ ...user, firstName: e.target.value });
+        setEditUser({ ...editUser, firstName: e.target.value });
+        clearFieldError("firstName");
     };
 
     const handleLastNameChange = (e) => {
-        setUser({ ...user, lastName: e.target.value });
+        setEditUser({ ...editUser, lastName: e.target.value });
+        clearFieldError("lastName");
     };
 
     // Xử lý thay đổi số điện thoại
     const handlePhoneNumberChange = (e) => {
-        setUser({ ...user, phoneNumber: e.target.value });
+        setEditUser({ ...editUser, phoneNumber: e.target.value });
         setErrorPhoneNumber("");
+        clearFieldError("phoneNumber");
     };
 
     // Xử lý thay đổi địa chỉ
     const handleAddressChange = (e) => {
-        setUser({ ...user, deliveryAddress: e.target.value });
+        setEditUser({ ...editUser, deliveryAddress: e.target.value });
+        clearFieldError("deliveryAddress");
     };
     // Xử lý thay đổi ngày sinh
     const handleDateOfBirthChange = (e) => {
-        setUser({ ...user, dateOfBirth: new Date(e.target.value) });
+        setEditUser({ ...editUser, dateOfBirth: new Date(e.target.value) });
+        clearFieldError("dateOfBirth");
     };
 
     // Xử lý thay đổi giới tính
     const handleGenderChange = (e) => {
-        setUser({ ...user, gender: e.target.value });
+        setEditUser({ ...editUser, gender: e.target.value });
+        clearFieldError("gender");
     };
 
     // Xử lý khi bấm nút chỉnh sửa
     const handleEditClick = () => {
         setIsEditMode(true);
-        setOriginalUser({ ...user });
+        setEditUser({ ...profileUser });
     };
 
     // Xử lý khi hủy chỉnh sửa
     const handleCancelEdit = () => {
-        if (originalUser) {
-            setUser(originalUser);
-        }
+        setEditUser({ ...profileUser });
         setIsEditMode(false);
         setErrorPhoneNumber("");
+        setFieldErrors({
+            firstName: "",
+            lastName: "",
+            phoneNumber: "",
+            deliveryAddress: "",
+            dateOfBirth: "",
+            gender: "",
+        });
     };
 
     // Xử lý khi submit form cập nhật thông tin
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const hasValidRequiredFields = validateRequiredFields();
+        if (!hasValidRequiredFields) {
+            toast.warning("Vui lòng điền đầy đủ các trường bắt buộc");
+            return;
+        }
+
+        const prev = profileUser;
+        const realNameChanged = hasRealNameChange(editUser, prev);
+
+        // Nếu có thay đổi tên thật thì mới normalize,
+        // còn không thì giữ nguyên để tránh việc người dùng nhập tên có khoảng trắng ở đầu/cuối hoặc nhiều khoảng trắng giữa các từ rồi bị normalize
+        const firstNameToUse = realNameChanged ? normalizeName(editUser.firstName) : prev.firstName;
+        const lastNameToUse = realNameChanged ? normalizeName(editUser.lastName) : prev.lastName;
 
         // Kiểm tra validation số điện thoại
         if (errorPhoneNumber.length > 0) {
@@ -150,16 +230,6 @@ const ProfilePage = () => {
         const token = localStorage.getItem("token");
         const idUser = getIdUserByToken();
 
-        // 👉 Thêm console.log ở đây
-        console.log("Dữ liệu gửi lên backend:", {
-            idUser: idUser,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            phoneNumber: user.phoneNumber,
-            deliveryAddress: user.deliveryAddress,
-            gender: user.gender,
-        });
-
         try {
             const response = await fetch(endpointBE + `/user/update-profile`, {
                 method: "PUT",
@@ -169,20 +239,26 @@ const ProfilePage = () => {
                 },
 
                 body: JSON.stringify({
-                    idUser: idUser,
-                    fistName: user.firstName,
-                    lastName: user.lastName,
-                    gender: user.gender,
-                    phoneNumber: user.phoneNumber,
-                    deliveryAddress: user.deliveryAddress,
-                    dateOfBirth: user.dateOfBirth,
+                    idUser,
+                    firstName: firstNameToUse,
+                    lastName: lastNameToUse,
+                    gender: editUser.gender,
+                    phoneNumber: editUser.phoneNumber,
+                    deliveryAddress: editUser.deliveryAddress,
+                    dateOfBirth: editUser.dateOfBirth,
                 }),
             });
 
             if (response.ok) {
                 toast.success("Cập nhật thông tin thành công");
+                const nextUser = {
+                    ...editUser,
+                    firstName: firstNameToUse,
+                    lastName: lastNameToUse,
+                };
+                setProfileUser(nextUser);
+                setEditUser(nextUser);
                 setIsEditMode(false);
-                setOriginalUser({ ...user });
             } else {
                 toast.error("Cập nhật thông tin thất bại");
             }
@@ -230,7 +306,12 @@ const ProfilePage = () => {
 
                     // Lấy lại thông tin user để cập nhật avatar
                     const updatedUser = await get1User(idUser);
-                    setUser(updatedUser);
+                    const updatedUserData = {
+                        ...updatedUser,
+                        dateOfBirth: new Date(updatedUser.dateOfBirth),
+                    };
+                    setProfileUser(updatedUserData);
+                    setEditUser(updatedUserData);
 
                     toast.success("Upload avatar thành công!");
                 } catch (error) {
@@ -357,8 +438,8 @@ const ProfilePage = () => {
                         <div className='d-flex align-items-center justify-content-center flex-column position-relative'>
                             <Avatar
                                 style={{ fontSize: "50px" }}
-                                alt={(user.lastName || "").toUpperCase()}
-                                src={user.avatar || "/images/user/user-default.jpg"}
+                                alt={(profileUser.lastName || "").toUpperCase()}
+                                src={profileUser.avatar || "/images/user/user-default.jpg"}
                                 sx={{ width: 100, height: 100 }}
                             />
                             <label htmlFor="avatar-upload" style={{ cursor: "pointer" }}>
@@ -394,8 +475,15 @@ const ProfilePage = () => {
                                 </IconButton>
                             </label>
                         </div>
+
                         <div className='text-center mt-3'>
-                            <p>Email: {user.email}</p>
+                            <p className='fs-4 fw-bold'>
+                                {profileUser.firstName + " " + profileUser.lastName}
+                            </p>
+                        </div>
+
+                        <div className='text-center mt-3'>
+                            <p>{profileUser.email}</p>
                             {isUploadingAvatar && (
                                 <p className='text-muted' style={{ fontSize: "0.875rem" }}>
                                     Đang tải lên...
@@ -453,7 +541,7 @@ const ProfilePage = () => {
                                                 required
                                                 fullWidth
                                                 label='ID'
-                                                value={user.idUser}
+                                                value={profileUser.idUser}
                                                 disabled={true}
                                                 className='input-field'
                                                 InputProps={{
@@ -465,24 +553,33 @@ const ProfilePage = () => {
                                                 fullWidth
                                                 label='Họ đệm'
                                                 placeholder='Nhập họ đệm'
-                                                value={user.firstName}
+                                                value={editUser.firstName}
                                                 onChange={handleFirstNameChange}
+                                                onBlur={(e) => {
+                                                    if (isEditMode && !e.target.value.trim()) {
+                                                        setFieldErrors((prev) => ({ ...prev, firstName: "Vui lòng nhập họ đệm" }));
+                                                    }
+                                                }}
                                                 disabled={!isEditMode}
+                                                error={isEditMode && fieldErrors.firstName.length > 0}
+                                                helperText={isEditMode ? fieldErrors.firstName : ""}
                                                 className='input-field'
 
 
                                             />
                                             <TextField
                                                 fullWidth
-                                                error={errorPhoneNumber.length > 0}
-                                                helperText={errorPhoneNumber}
-                                                required={true}
+                                                required
                                                 label='Số điện thoại'
                                                 placeholder='Nhập số điện thoại'
-                                                value={user.phoneNumber || ""}
+                                                value={editUser.phoneNumber || ""}
                                                 onChange={handlePhoneNumberChange}
                                                 onBlur={(e) => {
                                                     if (isEditMode) {
+                                                        if (!e.target.value.trim()) {
+                                                            setFieldErrors((prev) => ({ ...prev, phoneNumber: "Vui lòng nhập số điện thoại" }));
+                                                            return;
+                                                        }
                                                         checkPhoneNumber(
                                                             setErrorPhoneNumber,
                                                             e.target.value
@@ -490,6 +587,8 @@ const ProfilePage = () => {
                                                     }
                                                 }}
                                                 disabled={!isEditMode}
+                                                error={isEditMode && (fieldErrors.phoneNumber.length > 0 || errorPhoneNumber.length > 0)}
+                                                helperText={isEditMode ? (fieldErrors.phoneNumber || errorPhoneNumber) : ""}
                                                 className='input-field'
                                             />
                                         </div>
@@ -498,7 +597,7 @@ const ProfilePage = () => {
                                                 required
                                                 fullWidth
                                                 label='Tên tài khoản'
-                                                value={user.username}
+                                                value={profileUser.username}
                                                 disabled={true}
                                                 className='input-field'
                                                 InputProps={{
@@ -510,9 +609,16 @@ const ProfilePage = () => {
                                                 fullWidth
                                                 label='Tên'
                                                 placeholder='Nhập tên'
-                                                value={user.lastName}
+                                                value={editUser.lastName}
                                                 onChange={handleLastNameChange}
+                                                onBlur={(e) => {
+                                                    if (isEditMode && !e.target.value.trim()) {
+                                                        setFieldErrors((prev) => ({ ...prev, lastName: "Vui lòng nhập tên" }));
+                                                    }
+                                                }}
                                                 disabled={!isEditMode}
+                                                error={isEditMode && fieldErrors.lastName.length > 0}
+                                                helperText={isEditMode ? fieldErrors.lastName : ""}
                                                 className='input-field'
                                             />
                                             <TextField
@@ -520,9 +626,16 @@ const ProfilePage = () => {
                                                 fullWidth
                                                 label='Địa chỉ giao hàng'
                                                 placeholder='Nhập địa chỉ giao hàng'
-                                                value={user.deliveryAddress || ""}
+                                                value={editUser.deliveryAddress || ""}
                                                 onChange={handleAddressChange}
+                                                onBlur={(e) => {
+                                                    if (isEditMode && !e.target.value.trim()) {
+                                                        setFieldErrors((prev) => ({ ...prev, deliveryAddress: "Vui lòng nhập địa chỉ giao hàng" }));
+                                                    }
+                                                }}
                                                 disabled={!isEditMode}
+                                                error={isEditMode && fieldErrors.deliveryAddress.length > 0}
+                                                helperText={isEditMode ? fieldErrors.deliveryAddress : ""}
                                                 className='input-field'
                                             />
                                         </div>
@@ -531,7 +644,7 @@ const ProfilePage = () => {
                                                 required
                                                 fullWidth
                                                 label='Email'
-                                                value={user.email}
+                                                value={profileUser.email}
                                                 className='input-field'
                                                 disabled={true}
                                                 InputProps={{
@@ -547,12 +660,19 @@ const ProfilePage = () => {
                                                 style={{ width: "100%" }}
                                                 type='date'
                                                 value={
-                                                    user.dateOfBirth
-                                                        ? new Date(user.dateOfBirth).toISOString().split("T")[0]
+                                                    editUser.dateOfBirth
+                                                        ? new Date(editUser.dateOfBirth).toISOString().split("T")[0]
                                                         : ""
                                                 }
                                                 disabled={!isEditMode}
                                                 onChange={handleDateOfBirthChange}
+                                                onBlur={(e) => {
+                                                    if (isEditMode && !e.target.value) {
+                                                        setFieldErrors((prev) => ({ ...prev, dateOfBirth: "Vui lòng chọn ngày sinh" }));
+                                                    }
+                                                }}
+                                                error={isEditMode && fieldErrors.dateOfBirth.length > 0}
+                                                helperText={isEditMode ? fieldErrors.dateOfBirth : ""}
 
                                             />
                                             <FormControl>
@@ -564,7 +684,7 @@ const ProfilePage = () => {
                                                     row
                                                     aria-labelledby='demo-row-radio-buttons-group-label'
                                                     name='row-radio-buttons-group'
-                                                    value={user.gender || ""}
+                                                    value={editUser.gender || ""}
                                                     onChange={handleGenderChange}
 
                                                 >
@@ -581,6 +701,11 @@ const ProfilePage = () => {
                                                         label='Nữ'
                                                     />
                                                 </RadioGroup>
+                                                {isEditMode && fieldErrors.gender && (
+                                                    <span className='text-danger' style={{ fontSize: "0.75rem" }}>
+                                                        {fieldErrors.gender}
+                                                    </span>
+                                                )}
                                             </FormControl>
                                         </div>
                                     </div>
