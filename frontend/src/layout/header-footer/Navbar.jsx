@@ -149,7 +149,7 @@ return (
 										<li>
 											<Link
 												className='dropdown-item'
-												to='/admin/dashboard'
+												to='/admin/books'
 											>
 												Quản lý
 											</Link>
