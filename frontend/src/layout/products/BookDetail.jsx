@@ -1,389 +1,297 @@
 import { useNavigate, useParams } from "react-router-dom";
 import useScrollToTop from "../../hooks/ScrollToTop";
 import { useEffect, useState } from "react";
-import BookModel from "../../model/BookModel";
 import { getBookById } from "../../api/BookApi";
-import GenreModel from "../../model/GenreModel";
 import { getGenreByIdBook } from "../../api/GenreApi";
-import ImageModel from "../../model/ImageModel";
 import { getAllImageByBook } from "../../api/ImageApi";
-import { Button, Skeleton } from "@mui/material";
+import { Skeleton } from "@mui/material";
 import RatingStar from "./components/rating/Rating";
 import SelectQuantity from "./components/select-quantity/SelectQuantity";
-import { ShoppingCartOutlined } from "@mui/icons-material";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import Comment from "./components/comment/Comment";
 import { endpointBE } from "../utils/Constant";
 import { toast } from "react-toastify";
 import { getIdUserByToken, isToken } from "../utils/JwtService";
-import CartItemModel from "../../model/CartItemModel";
 import { CheckoutPage } from "../pages/CheckoutPage";
 import { getCartAllByIdUser, updateQuantityCartItem } from "../../api/CartApi";
 
 const BookDetail = (props) => {
-	useScrollToTop(); // Mỗi lần vào component này thì sẽ ở trên cùng
+    useScrollToTop();
+    const navigate = useNavigate();
 
-	const navigate = useNavigate();
+    const [cartList, setCartList] = useState([]);
+    const [totalPriceProduct, setTotalPriceProduct] = useState(0);
+    const [isCheckout, setIsCheckout] = useState(false);
 
-	const [cartList, setCartList] = useState([]); //Xử lý cho buy now
-	const [totalPriceProduct, setTotalPriceProduct] = useState(0); //Xử lý cho buy now
-	const [isCheckout, setIsCheckout] = useState(false); //Xử lý cho buy now
+    const { idBook } = useParams();
+    let idBookNumber = 0;
+    try {
+        idBookNumber = parseInt(idBook + "");
+        if (Number.isNaN(idBookNumber)) idBookNumber = 0;
+    } catch (error) { console.error("Error:", error); }
 
-	// Lấy mã sách từ url
-	const { idBook } = useParams();
-	let idBookNumber = 0;
+    const [book, setBook]       = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [erroring, setErroring] = useState(null);
+    const [genres, setGenres]   = useState(null);
+    const [images, setImages]   = useState(null);
+    const [quantity, setQuantity] = useState(1);
 
-	// Ép kiểu về number
-	try {
-		idBookNumber = parseInt(idBook + "");
-		if (Number.isNaN(idBookNumber)) {
-			idBookNumber = 0;
-		}
-	} catch (error) {
-		console.error("Error: " + error);
-	}
+    useEffect(() => {
+        getBookById(idBookNumber)
+            .then(r => { setBook(r); setLoading(false); })
+            .catch(e => { setLoading(false); setErroring(e.message); });
+    }, []);
 
-	// Khai báo biến
-	const [book, setBook] = useState(null);
-	const [loading, setLoading] = useState(true);
-	const [erroring, setErroring] = useState(null);
-	// Lấy sách ra
-	useEffect(() => {
-		getBookById(idBookNumber)
-			.then((response) => {
-				setBook(response);
-				setLoading(false);
-			})
-			.catch((error) => {
-				setLoading(false);
-				setErroring(error.message);
-			});
-	}, []);
+    useEffect(() => { getGenreByIdBook(idBookNumber).then(setGenres); }, []);
+    useEffect(() => { getAllImageByBook(idBookNumber).then(setImages).catch(console.error); }, []);
 
-	// Lấy ra thể loại của sách
-	const [genres, setGenres] = useState(null);
-	useEffect(() => {
-		getGenreByIdBook(idBookNumber).then((response) => {
-			setGenres(response);
-		});
-	}, []);
+    const add    = () => { if (quantity < (book?.quantity ?? 1)) setQuantity(q => q + 1); };
+    const reduce = () => { if (quantity > 1) setQuantity(q => q - 1); };
 
-	// Lấy ra hình ảnh của sách
-	const [images, setImages] = useState(null);
-	useEffect(() => {
-		getAllImageByBook(idBookNumber)
-			.then((response) => {
-				setImages(response);
-			})
-			.catch((error) => {
-				console.error(error);
-			});
-	}, []);
+    const handleAddProduct = async (book) => {
+        const cartList = await getCartAllByIdUser();
+        const existing = cartList.find(c => c.book?.idBook === book.idBook);
+        if (existing) {
+            existing.quantity = (existing.quantity || 1) + quantity;
+            try { await updateQuantityCartItem(existing); } catch (e) { console.error(e); }
+            return;
+        }
+        const token  = localStorage.getItem("token");
+        const idUser = Number(getIdUserByToken());
+        try {
+            const res = await toast.promise(
+                fetch(endpointBE + "/cart-item/add-item", {
+                    method: "POST",
+                    headers: { "Content-type": "application/json", "Authorization": "Bearer " + token },
+                    body: JSON.stringify({ idBook: book.idBook, quantity, idUser }),
+                }),
+                { pending: "Đang xử lý ..." }
+            );
+            if (res.ok) {
+                toast.success("Đã thêm vào giỏ hàng");
+                window.dispatchEvent(new Event('cart_updated'));
+            } else {
+                toast.error("Đã xảy ra lỗi");
+            }
+        } catch { toast.error("Đã xảy ra lỗi"); }
+    };
 
-	//Tạo biến số lượng
-	const [quantity, setQuantity] = useState(1);
-	// Xử lý tăng số lượng
-	const add = () => {
-		//không được vượt quá số lượng sách có sẵn
-		if (quantity < (book?.quantity ? book?.quantity : 1)) {
-			setQuantity(quantity + 1);
-		}
-	};
+    const handleBuyNow = (book) => {
+        setCartList([{ book, quantity, idUser: Number(getIdUserByToken()) }]);
+        if (book.sellPrice) setTotalPriceProduct(book.sellPrice * quantity);
+        setIsCheckout(!isCheckout);
+    };
 
-	// Xử lý giảm số lượng
-	const reduce = () => {
-		//không được giảm dưới 1
-		if (quantity > 1) {
-			setQuantity(quantity - 1);
-		}
-	};
+    /* ─── Loading ─── */
+    if (loading) return (
+        <div className='container my-4' style={{ background: '#fff', borderRadius: '16px', padding: '32px' }}>
+            <div className='row'>
+                <div className='col-4'><Skeleton variant='rectangular' height={400} style={{ borderRadius: '12px' }} /></div>
+                <div className='col-8 ps-5'>
+                    <Skeleton variant='rectangular' height={36} style={{ borderRadius: '8px', marginBottom: '16px' }} />
+                    <Skeleton variant='rectangular' height={20} style={{ borderRadius: '8px', marginBottom: '12px' }} />
+                    <Skeleton variant='rectangular' height={20} style={{ borderRadius: '8px', marginBottom: '12px', width: '60%' }} />
+                    <Skeleton variant='rectangular' height={80} style={{ borderRadius: '8px', marginTop: '24px' }} />
+                </div>
+            </div>
+        </div>
+    );
 
-	// Xử lý thêm sản phẩm vào giỏ hàng
-	const handleAddProduct = async (book) => {
+    if (erroring) return (
+        <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+            <h2 style={{ fontFamily: "'DM Sans', sans-serif" }}>Gặp lỗi: {erroring}</h2>
+        </div>
+    );
 
-		//Xử lý khi đã có sách sẵn trong giỏ hàng
-		const cartList = await getCartAllByIdUser();
-		//Xử dụng find để tìm sách trong giỏ hàng
-		const existing = cartList.find(
-			(cartItem) => cartItem.book?.idBook === book.idBook
-		);
+    if (!book) return (
+        <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+            <h2 style={{ fontFamily: "'DM Sans', sans-serif" }}>Sách không tồn tại</h2>
+        </div>
+    );
 
-		if (existing) {
-			existing.quantity = (existing.quantity || 1) + quantity;
-			try {
-				await updateQuantityCartItem(existing);
-			} catch (error) {
-				console.error(error);
-			}
-			return;
-		}
+    return (
+        <>
+            {isCheckout ? (
+                <CheckoutPage cartList={cartList} totalPriceProduct={totalPriceProduct} setIsCheckout={setIsCheckout} />
+            ) : (
+                <>
+                    {/* ══ Main Panel ══ */}
+                    <div className='container my-4 animate-slide-up' style={{
+                        background: '#fff', borderRadius: '16px',
+                        boxShadow: '0 2px 16px rgba(0,0,0,0.05)',
+                        padding: '32px', fontFamily: "'DM Sans', sans-serif",
+                    }}>
+                        <div className='row'>
+                            {/* Cover */}
+                            <div className='col-lg-4 col-md-5 col-sm-12'>
+                                <div style={{ borderRadius: '12px', overflow: 'hidden', background: '#F8FAFC' }}>
+                                    <Carousel emulateTouch showIndicators={false} showArrows showThumbs={false}>
+                                        {images?.map((img, i) => (
+                                            <div key={i} style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}>
+                                                <img
+                                                    src={img.urlImage}
+                                                    alt={book.nameBook}
+                                                    style={{ maxHeight: '400px', maxWidth: '100%', objectFit: 'contain' }}
+                                                />
+                                            </div>
+                                        ))}
+                                    </Carousel>
+                                </div>
+                            </div>
 
+                            {/* Info */}
+                            <div className='col-lg-8 col-md-7 col-sm-12 ps-lg-5 mt-4 mt-md-0'>
+                                {/* Title */}
+                                <h1 style={{
+                                    fontFamily: "'DM Sans', sans-serif",
+                                    fontSize: '28px', fontWeight: 400, color: '#111827',
+                                    lineHeight: 1.3, marginBottom: '14px'
+                                }}>
+                                    {book.nameBook}
+                                </h1>
 
+                                {/* Meta */}
+                                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', fontSize: '13.5px', color: '#9CA3AF', marginBottom: '16px' }}>
+                                    <span>Thể loại:&nbsp;
+                                        <strong style={{ color: '#374151' }}>{genres?.map(g => g.nameGenre).join(', ')}</strong>
+                                    </span>
+                                    <span style={{ color: '#E5E7EB' }}>·</span>
+                                    <span>Tác giả:&nbsp;
+                                        <strong style={{ color: '#374151' }}>{book.author}</strong>
+                                    </span>
+                                </div>
 
-		//Thêm sản phẩm vào giỏ hàng
-		const endPoint = endpointBE + "/cart-item/add-item";
+                                {/* Rating */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                                    <RatingStar readonly ratingPoint={book.avgRating} />
+                                    <span style={{ fontSize: '13px', color: '#2C7B8F', fontWeight: 600 }}>{book.avgRating}</span>
+                                    <span style={{ color: '#E5E7EB' }}>|</span>
+                                    <span style={{ fontSize: '13px', color: '#9CA3AF' }}>
+                                        Đã bán <strong style={{ color: '#6B7280' }}>{book.soldQuantity}</strong>
+                                    </span>
+                                </div>
 
-		const token = localStorage.getItem("token");
-		const idUser = Number(getIdUserByToken());
+                                {/* Price Box */}
+                                <div style={{
+                                    background: '#EEF8FA', borderRadius: '10px',
+                                    padding: '18px 22px', marginBottom: '20px',
+                                    display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap'
+                                }}>
+                                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '30px', fontWeight: 800, color: '#2C7B8F' }}>
+                                        {book.sellPrice?.toLocaleString()}đ
+                                    </span>
+                                    {book.listPrice && (
+                                        <span style={{ fontSize: '15px', color: '#CBD5E1', textDecoration: 'line-through', fontFamily: "'DM Sans', sans-serif" }}>
+                                            {book.listPrice?.toLocaleString()}đ
+                                        </span>
+                                    )}
+                                    {book.discountPercent > 0 && (
+                                        <span style={{
+                                            background: '#2C7B8F', color: '#fff', borderRadius: '20px',
+                                            padding: '3px 10px', fontSize: '12px', fontWeight: 600,
+                                            fontFamily: "'DM Sans', sans-serif"
+                                        }}>
+                                            −{book.discountPercent}%
+                                        </span>
+                                    )}
+                                </div>
 
-		try {
-			const response = await toast.promise(
-				fetch(endPoint, {
-					method: "POST",
-					headers: {
-						"Content-type": "application/json",
-						"Authorization": "Bearer " + token,
-					},
-					body: JSON.stringify({
-						idBook: book.idBook,
-						quantity: quantity,
-						idUser: idUser,
-					}),
-				}),
-				{ pending: "Đang trong quá trình xử lý ..." }
-			);
-			if (response.ok) {
-				toast.success("Đã thêm sản phẩm vào giỏ hàng");
-			} else {
-				toast.error("Đã xảy ra lỗi");
-			}
-		} catch (error) {
-			toast.error("Đã xảy ra lỗi");
-		}
-	}
+                                {/* Shipping */}
+                                <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ color: '#2C7B8F', fontSize: '14px' }}>✦</span> Miễn phí vận chuyển toàn quốc
+                                </div>
 
-	const handleBuyNow = (book) => {
-		setCartList([
-			{
-				book: book,
-				quantity: quantity,
-				idUser: Number(getIdUserByToken()),
-			}
-		])
+                                {/* Quantity */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                                    <span style={{ fontSize: '14px', color: '#6B7280', fontWeight: 500, minWidth: '72px' }}>Số lượng:</span>
+                                    <SelectQuantity max={book.quantity} quantity={quantity} add={add} reduce={reduce} setQuantity={setQuantity} />
+                                    <span style={{ fontSize: '13px', color: '#D1D5DB' }}>{book.quantity} có sẵn</span>
+                                </div>
 
-		if (book.sellPrice) {
-			setTotalPriceProduct(book.sellPrice * quantity);
-		}
-		setIsCheckout(!isCheckout);
-	}
+                                {/* CTA */}
+                                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                    {book.quantity === 0 ? (
+                                        <div style={{
+                                            padding: '11px 24px', borderRadius: '10px',
+                                            border: '1.5px solid #FCA5A5', color: '#DC2626',
+                                            fontSize: '14px', fontWeight: 500, fontFamily: "'DM Sans', sans-serif"
+                                        }}>
+                                            Hết hàng
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <button
+                                                style={{
+                                                    padding: '11px 26px', borderRadius: '10px',
+                                                    border: '1.5px solid #2C7B8F', background: 'transparent',
+                                                    color: '#2C7B8F', fontSize: '14px', fontWeight: 600,
+                                                    cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                                                    transition: 'all 0.22s ease',
+                                                }}
+                                                onMouseEnter={e => { e.currentTarget.style.background = '#2C7B8F'; e.currentTarget.style.color = '#fff'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#2C7B8F'; }}
+                                                onClick={isToken() ? () => handleAddProduct(book) : () => navigate("/login")}
+                                            >
+                                                Thêm vào giỏ
+                                            </button>
+                                            <button
+                                                style={{
+                                                    padding: '11px 30px', borderRadius: '10px',
+                                                    border: 'none', background: '#2C7B8F',
+                                                    color: '#fff', fontSize: '14px', fontWeight: 600,
+                                                    cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                                                    transition: 'background 0.22s ease',
+                                                    boxShadow: '0 4px 12px rgba(44,123,143,0.25)',
+                                                }}
+                                                onMouseEnter={e => { e.currentTarget.style.background = '#1A5E70'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = '#2C7B8F'; }}
+                                                onClick={isToken() ? () => handleBuyNow(book) : () => navigate("/login")}
+                                            >
+                                                Mua ngay
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-	if (loading) {
-		return (
-			<div className='container-book container mb-5 py-5 px-5 bg-light'>
-				<div className='row'>
-					<div className='col-4'>
-						<Skeleton
-							className='my-3'
-							variant='rectangular'
-							height={400}
-						/>
-					</div>
-					<div className='col-8 px-5'>
-						<Skeleton
-							className='my-3'
-							variant='rectangular'
-							height={100}
-						/>
-						<Skeleton className='my-3' variant='rectangular' />
-						<Skeleton className='my-3' variant='rectangular' />
-						<Skeleton className='my-3' variant='rectangular' />
-					</div>
-				</div>
-			</div>
-		);
-	}
+                    {/* ══ Description ══ */}
+                    <div className='container my-3' style={{
+                        background: '#fff', borderRadius: '16px',
+                        boxShadow: '0 2px 16px rgba(0,0,0,0.05)', padding: '28px 32px'
+                    }}>
+                        <h5 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '18px', fontWeight: 400, color: '#111827', marginBottom: '14px' }}>
+                            Mô tả sản phẩm
+                        </h5>
+                        <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '18px' }}>
+                            <p style={{
+                                fontFamily: "'DM Sans', sans-serif", fontSize: '14.5px',
+                                color: '#4B5563', lineHeight: '1.85', whiteSpace: 'pre-wrap', margin: 0
+                            }}>
+                                {book.description}
+                            </p>
+                        </div>
+                    </div>
 
-	if (erroring) {
-		return (
-			<div>
-				<h1>Gặp lỗi: {erroring}</h1>
-			</div>
-		);
-	}
-
-	if (book === null) {
-		return (
-			<div>
-				<h1>Sách không tồn tại </h1>
-			</div>
-		);
-	}
-
-	return (
-		<>
-			{isCheckout ? (
-				<CheckoutPage
-					cartList={cartList}
-					totalPriceProduct={totalPriceProduct}
-					setIsCheckout={setIsCheckout}
-				/>
-			) : (
-				<>
-					<div className='container p-2 bg-white my-3 rounded'>
-						<div className='row mt-4 mb-4'>
-							<div className='col-lg-4 col-md-4 col-sm-12'>
-								<Carousel
-									emulateTouch={true}
-									swipeable={true}
-									showIndicators={false}
-									showArrows={true}
-								>
-									{/* Hiển thị ảnh của sách */}
-									{images?.map((image, index) => (
-										<div
-											key={index}
-											style={{
-												width: "100%",
-												height: "400px",
-												objectFit: "cover",
-											}}>
-											<img
-												alt=''
-												src={
-													image.urlImage
-												}
-											/></div>
-
-									))}
-								</Carousel>
-							</div>
-							<div className='col-lg-8 col-md-8 col-sm-12 px-5'>
-								<h2>{book.nameBook}</h2>
-								<div className='d-flex align-items-center'>
-									<p className='me-5'>
-										Thể loại:{" "}
-										<strong>
-											{genres?.map((genre) => genre.nameGenre + " ")}
-										</strong>
-									</p>
-									<p className='ms-5'>
-										Tác giả: <strong>{book.author}</strong>
-									</p>
-								</div>
-								<div className='d-flex align-items-center'>
-									<div className='d-flex align-items-center'>
-										{/* Hiển thị sao */}
-										<RatingStar
-											readonly={true}
-											ratingPoint={book.avgRating}
-										/>
-
-										{/* Hiển thị số sao */}
-										<p className='text-danger ms-2 mb-0'>
-											({book.avgRating})
-										</p>
-									</div>
-									<div className='d-flex align-items-center'>
-										<span className='mx-3 mb-1 text-secondary'>
-											|
-										</span>
-									</div>
-									<div className='d-flex align-items-end justify-content-center '>
-										<span
-											style={{
-												color: "rgb(135,135,135)",
-												fontSize: "16px",
-											}}
-										>
-											Đã bán
-										</span>
-										<span className='fw-bold ms-2'>
-											{book.soldQuantity}
-										</span>
-									</div>
-								</div>
-								<div className='price'>
-									<span className='discounted-price text-danger me-3'>
-										<strong style={{ fontSize: "32px" }}>
-											{book.sellPrice?.toLocaleString()}đ
-										</strong>
-									</span>
-									<span className='original-price small me-3'>
-										<strong>
-											<del>{book.listPrice?.toLocaleString()}đ</del>
-										</strong>
-									</span>
-									<h4 className='my-0 d-inline-block'>
-										<span className='badge bg-danger'>
-											{book.discountPercent}%
-										</span>
-									</h4>
-								</div>
-								<div className='mt-3'>
-									<div className='d-flex align-items-center mt-3'>
-										{/* Hiển thị hình ảnh miễn phí vận chuyển */}
-										<img
-											src='https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/d9e992985b18d96aab90969636ebfd0e.png'
-											height='20'
-											alt='free ship'
-										/>
-										<span className='ms-3'>Miễn phí vận chuyển</span>
-									</div>
-								</div>
-								<div className='d-flex align-items-center mt-3'>
-									{/* Hiển thị số lượng */}
-									<strong className='me-5'>Số lượng: </strong>
-									<SelectQuantity
-										max={book.quantity}
-										quantity={quantity}
-										add={add}
-										reduce={reduce}
-										setQuantity={setQuantity}
-									/>
-									<span className='ms-4'>
-										{book.quantity} sản phẩm có sẵn
-									</span>
-								</div>
-								<div className='mt-4 d-flex align-items-center'>
-									{book.quantity === 0 ? (
-										<Button
-											variant='outlined'
-											size='large'
-											className='me-3'
-											color='error'
-										>
-											Hết hàng
-										</Button>
-									) : (
-										<>
-											<Button
-												variant='outlined'
-												size='large'
-												startIcon={<ShoppingCartOutlined />}
-												className='me-3'
-												onClick={isToken() ? () => handleAddProduct(book) : () => navigate("/login")}
-											>
-												Thêm vào giỏ hàng
-											</Button>
-											<Button
-												variant='contained'
-												size='large'
-												className='ms-3'
-												onClick={isToken() ? () => handleBuyNow(book) : () => navigate("/login")}
-											>
-												Mua ngay
-											</Button>
-										</>
-									)}
-								</div>
-							</div>
-						</div>
-					</div>
-					<div className='container p-4 bg-white my-3 rounded'>
-						<h5 className='my-3'>Mô tả sản phẩm</h5>
-						<hr />
-						<p>{book.description}</p>
-					</div>
-					<div className='container p-4 bg-white my-3 rounded'>
-						<h5 className='my-3'>Khách hàng đánh giá</h5>
-						<hr />
-						<Comment idBook={idBookNumber} />
-					</div>
-				</>
-			)}
-		</>
-	);
+                    {/* ══ Reviews ══ */}
+                    <div className='container my-3 mb-5' style={{
+                        background: '#fff', borderRadius: '16px',
+                        boxShadow: '0 2px 16px rgba(0,0,0,0.05)', padding: '28px 32px'
+                    }}>
+                        <h5 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '18px', fontWeight: 400, color: '#111827', marginBottom: '14px' }}>
+                            Đánh giá của khách hàng
+                        </h5>
+                        <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '18px' }}>
+                            <Comment idBook={idBookNumber} />
+                        </div>
+                    </div>
+                </>
+            )}
+        </>
+    );
 };
 
 export default BookDetail;

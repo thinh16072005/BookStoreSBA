@@ -418,40 +418,70 @@ export const CheckoutPage = (props) => {
 				</div>
 			</form>
 
-			<Dialog open={showCouponDialog} onClose={() => setShowCouponDialog(false)} maxWidth="sm" fullWidth>
-				<DialogTitle>Chọn mã giảm giá</DialogTitle>
-				<DialogContent>
-					<List>
-						{couponList.length === 0 && (
-							<ListItem>
-								<ListItemText primary="Không có mã giảm giá khả dụng!" />
-							</ListItem>
-						)}
-						{couponList
-							.filter(coupon => coupon.isUsed === false && coupon.isActive === true && new Date(coupon.expiryDate).getTime() > new Date().getTime())
-							.map((coupon) => (
-								<ListItemButton
-									key={coupon.idCoupon}
-									onClick={() => {
-										setSelectedCoupon(coupon);
-										setShowCouponDialog(false);
-										toast.success(`Đã chọn mã: ${coupon.code}`);
-									}}
-								>
-									<ListItemText
-										primary={coupon.code}
-										secondary={`Giảm ${coupon.discountPercent}% - HSD: ${new Date(coupon.expiryDate).toLocaleDateString('vi-VN')}`}
-									/>
-								</ListItemButton>
-							))}
-					</List>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => setShowCouponDialog(false)}>
-						Đóng
-					</Button>
-				</DialogActions>
-			</Dialog>
+			{showCouponDialog && (
+				<div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(5px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowCouponDialog(false)}>
+					<div style={{ background: '#fff', borderRadius: '16px', width: '90%', maxWidth: '420px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)', overflow: 'hidden', animation: 'slideUp 0.3s cubic-bezier(0.16,1,0.3,1)' }} onClick={e => e.stopPropagation()}>
+						<div style={{ padding: '24px 24px 16px', background: 'linear-gradient(135deg, #2C7B8F, #1A5E70)' }}>
+							<h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#fff', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', gap: '8px' }}>
+								<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 12H16c-.7 2-3 3-4.5 3S7 14 7 12H2.5"/><path d="M5.5 5.1L2 12v6c0 1.1.9 2 2 2h16a2 2 0 002-2v-6l-3.4-6.9A2 2 0 0016.8 4H7.2a2 2 0 00-1.8 1.1z"/></svg>
+								Mã giảm giá khả dụng
+							</h3>
+							<p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.8)', fontSize: '13.5px', fontFamily: "'DM Sans', sans-serif" }}>Chọn một mã bên dưới để áp dụng vào đơn hàng của bạn.</p>
+						</div>
+						
+						<div style={{ padding: '24px', maxHeight: '60vh', overflowY: 'auto' }}>
+							{(() => {
+								const validCoupons = couponList.filter(coupon => coupon.isUsed === false && coupon.isActive === true && new Date(coupon.expiryDate).getTime() > new Date().getTime());
+								if (validCoupons.length === 0) {
+									return (
+										<div style={{ textAlign: 'center', padding: '32px 0', color: '#64748B', fontFamily: "'DM Sans', sans-serif" }}>
+											<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ marginBottom: '16px', opacity: 0.5 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+											<p style={{ margin: 0, fontSize: '15px' }}>Chưa có mã giảm giá nào phù hợp!</p>
+										</div>
+									);
+								}
+								return validCoupons.map((coupon) => (
+									<div 
+										key={coupon.idCoupon}
+										onClick={() => {
+											setSelectedCoupon(coupon);
+											setShowCouponDialog(false);
+											toast.success(`Đã áp dụng mã: ${coupon.code}`);
+										}}
+										style={{ 
+											display: 'flex', border: '1.5px dashed', borderRadius: '12px', padding: '16px', marginBottom: '12px', cursor: 'pointer', transition: 'all 0.2s ease', position: 'relative', overflow: 'hidden', alignItems: 'center', gap: '16px', backgroundColor: selectedCoupon?.idCoupon === coupon.idCoupon ? '#F0FDF4' : '#fff', borderColor: selectedCoupon?.idCoupon === coupon.idCoupon ? '#22C55E' : '#CBD5E1'
+										}}
+										onMouseEnter={e => { if (selectedCoupon?.idCoupon !== coupon.idCoupon) { e.currentTarget.style.borderColor = '#2C7B8F'; e.currentTarget.style.backgroundColor = '#F8FAFC'; } }}
+										onMouseLeave={e => { if (selectedCoupon?.idCoupon !== coupon.idCoupon) { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.backgroundColor = '#fff'; } }}
+									>
+										<div style={{ width: '48px', height: '48px', borderRadius: '10px', background: '#EEF8FA', color: '#2C7B8F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '18px', flexShrink: 0 }}>
+											{coupon.discountPercent}%
+										</div>
+										<div style={{ flex: 1, fontFamily: "'DM Sans', sans-serif" }}>
+											<div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>{coupon.code}</div>
+											<div style={{ fontSize: '13px', color: '#64748B' }}>HSD: {new Date(coupon.expiryDate).toLocaleDateString('vi-VN')}</div>
+										</div>
+										<div style={{ padding: '6px 14px', borderRadius: '6px', background: selectedCoupon?.idCoupon === coupon.idCoupon ? '#22C55E' : '#2C7B8F', color: '#fff', fontSize: '12px', fontWeight: 600, fontFamily: "'DM Sans', sans-serif", border: 'none' }}>
+											{selectedCoupon?.idCoupon === coupon.idCoupon ? 'Đang dùng' : 'Áp dụng'}
+										</div>
+									</div>
+								));
+							})()}
+						</div>
+						
+						<div style={{ padding: '16px 24px', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'flex-end' }}>
+							<button
+								onClick={() => setShowCouponDialog(false)}
+								style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #E2E8F0', background: '#fff', color: '#475569', fontFamily: "'DM Sans', sans-serif", fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+								onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+								onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+							>
+								Đóng cửa sổ
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 
 		</>
 	);

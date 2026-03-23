@@ -11,16 +11,17 @@ const AdminLayout = () => {
                     display: flex;
                     flex-direction: column;
                     min-height: 100vh;
-                    margin-left: 280px;
+                    margin-left: 240px;
                 }
 
                 .admin-header {
-                    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-                    padding: 16px 24px;
+                    background: #fff;
+                    padding: 14px 28px;
                     display: flex;
                     justify-content: flex-end;
                     align-items: center;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    border-bottom: 1px solid #F1F5F9;
+                    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
                     position: sticky;
                     top: 0;
                     z-index: 1000;
@@ -28,8 +29,8 @@ const AdminLayout = () => {
 
                 .admin-content {
                     flex: 1;
-                    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                    padding: 24px;
+                    background: #F8FAFC;
+                    padding: 28px;
                     overflow-y: auto;
                 }
 

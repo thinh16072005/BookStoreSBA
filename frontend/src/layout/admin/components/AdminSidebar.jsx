@@ -2,142 +2,127 @@ import { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { logout } from '../../utils/JwtService';
 
+const NAV_ITEMS = [
+    { to: '/admin/books',    symbol: '◈', label: 'Sách'       },
+    { to: '/admin/genres',   symbol: '⊟', label: 'Thể loại'  },
+    { to: '/admin/users',    symbol: '◯', label: 'Tài khoản'  },
+    { to: '/admin/orders',   symbol: '⌑', label: 'Đơn hàng'  },
+    { to: '/admin/feedback', symbol: '✦', label: 'Feedback'   },
+    { to: '/admin/coupon',   symbol: '◇', label: 'Mã giảm giá'},
+];
+
 const AdminSidebar = () => {
     const navigate = useNavigate();
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef(null);
 
-    const handleLogout = () => {
-        logout(navigate);
-    };
-
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setShowDropdown(false);
-            }
+        const handler = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setShowDropdown(false);
         };
-
-        if (showDropdown) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
+        if (showDropdown) document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
     }, [showDropdown]);
 
     return (
         <>
             <style>{`
                 .admin-sidebar {
-                    width: 280px;
+                    width: 240px;
                     height: 100vh;
-                    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-                    color: white;
+                    background: #0F172A;
+                    color: #94A3B8;
                     display: flex;
                     flex-direction: column;
                     position: fixed;
-                    left: 0;
-                    top: 0;
-                    padding: 0;
-                    margin: 0;
+                    left: 0; top: 0;
+                    padding: 0; margin: 0;
                     overflow-y: auto;
-                    box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+                    box-shadow: 2px 0 20px rgba(0,0,0,0.25);
                     z-index: 1030;
                 }
 
                 .sidebar-header {
-                    padding: 24px 16px;
-                    border-bottom: 2px solid rgba(255,255,255,0.15);
-                    background: rgba(0,0,0,0.1);
+                    padding: 28px 20px 20px;
+                    border-bottom: 1px solid rgba(255,255,255,0.06);
                     flex-shrink: 0;
                 }
-
-                .sidebar-header-content {
+                .sidebar-brand {
                     display: flex;
                     align-items: center;
-                    gap: 12px;
+                    gap: 10px;
                 }
-
-                .sidebar-header-icon {
-                    width: 48px;
-                    height: 48px;
-                    background: rgba(255,255,255,0.25);
-                    border-radius: 12px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 24px;
-                    flex-shrink: 0;
+                .sidebar-brand-symbol {
+                    color: #2C7B8F;
+                    font-size: 18px;
+                    line-height: 1;
                 }
-
-                .sidebar-header-text h3 {
-                    margin: 0;
-                    font-size: 16px;
-                    font-weight: 700;
+                .sidebar-brand-name {
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 17px;
+                    font-weight: 400;
+                    color: #F1F5F9;
+                    letter-spacing: 0.3px;
+                }
+                .sidebar-brand-sub {
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 10px;
                     letter-spacing: 1.5px;
-                }
-
-                .sidebar-header-text p {
-                    margin: 4px 0 0 0;
-                    font-size: 11px;
-                    color: rgba(255,255,255,0.75);
-                    font-weight: 500;
-                    letter-spacing: 0.5px;
+                    text-transform: uppercase;
+                    color: #475569;
+                    margin-top: 2px;
                 }
 
                 .sidebar-nav {
                     flex: 1;
-                    padding: 12px 8px;
+                    padding: 12px 10px;
                     overflow-y: auto;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 4px;
                 }
-
+                .sidebar-section-label {
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 10px;
+                    font-weight: 600;
+                    letter-spacing: 1.2px;
+                    text-transform: uppercase;
+                    color: #334155;
+                    padding: 10px 12px 6px;
+                }
                 .nav-link {
-                    display: flex;
+                    display: flex !important;
                     align-items: center;
-                    gap: 14px;
-                    padding: 14px 16px;
-                    border-radius: 10px;
-                    text-decoration: none;
-                    color: rgba(255,255,255,0.85);
-                    background: transparent;
-                    border-left: 4px solid transparent;
-                    transition: all 0.3s ease;
-                    font-size: 14px;
+                    gap: 12px;
+                    padding: 10px 12px;
+                    border-radius: 8px;
+                    color: #64748B !important;
+                    text-decoration: none !important;
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 13.5px;
                     font-weight: 500;
-                    letter-spacing: 0.3px;
-                    cursor: pointer;
+                    transition: all 0.18s ease;
+                    border-left: 2px solid transparent;
+                    margin-bottom: 2px;
                 }
-
                 .nav-link:hover {
-                    background: rgba(255,255,255,0.1);
-                    color: white;
-                    transform: translateX(4px);
+                    background: rgba(255,255,255,0.05);
+                    color: #CBD5E1 !important;
+                    border-left-color: rgba(44,123,143,0.4);
                 }
-
                 .nav-link.active {
-                    background: rgba(255,255,255,0.2);
-                    color: #ffc107;
-                    border-left-color: #ffc107;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-                    transform: translateX(4px);
+                    background: rgba(44,123,143,0.15);
+                    color: #7DD3E0 !important;
+                    border-left-color: #2C7B8F;
                 }
-
-                .nav-link i {
-                    font-size: 18px;
-                    width: 24px;
+                .nav-symbol {
+                    font-size: 15px;
+                    width: 20px;
                     text-align: center;
                     flex-shrink: 0;
+                    line-height: 1;
                 }
 
                 .sidebar-footer {
-                    padding: 12px 8px 16px 8px;
-                    border-top: 2px solid rgba(255,255,255,0.15);
-                    background: rgba(0,0,0,0.05);
+                    padding: 12px 10px 16px;
+                    border-top: 1px solid rgba(255,255,255,0.06);
                     flex-shrink: 0;
                     position: relative;
                 }
@@ -146,174 +131,124 @@ const AdminSidebar = () => {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    padding: 14px 16px;
-                    border-radius: 10px;
-                    background: rgba(255,255,255,0.12);
-                    border: 2px solid rgba(255,255,255,0.3);
-                    color: white;
+                    padding: 10px 14px;
+                    border-radius: 8px;
+                    background: rgba(255,255,255,0.05);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    color: #94A3B8;
                     cursor: pointer;
-                    transition: all 0.3s ease;
-                    font-weight: 600;
-                    font-size: 14px;
-                    letter-spacing: 0.5px;
+                    transition: all 0.2s ease;
+                    font-family: 'DM Sans', sans-serif;
+                    font-size: 13px;
+                    font-weight: 500;
                 }
                 .admin-button:hover {
-                    background: rgba(255,255,255,0.2);
-                    border-color: rgba(255,255,255,0.5);
-                    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-                }
-                .admin-button-content {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                }
-                .admin-button-icon {
-                    font-size: 20px;
-                }
-                .admin-button-arrow {
-                    font-size: 14px;
-                    transition: transform 0.3s ease;
+                    background: rgba(255,255,255,0.09);
+                    border-color: rgba(44,123,143,0.4);
+                    color: #CBD5E1;
                 }
                 .admin-dropdown {
                     position: absolute;
-                    bottom: calc(100% + 12px);
-                    left: 8px;
-                    right: 8px;
-                    background: white;
-                    color: #333;
+                    bottom: calc(100% + 8px);
+                    left: 10px;
+                    right: 10px;
+                    background: #1E293B;
+                    border: 1px solid rgba(255,255,255,0.08);
                     border-radius: 10px;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                    box-shadow: 0 -8px 24px rgba(0,0,0,0.3);
                     overflow: hidden;
                     z-index: 1100;
-                    animation: slideUp 0.25s ease-out;
+                    animation: slideUp 0.2s ease-out both;
+                }
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(6px); }
+                    to   { opacity: 1; transform: translateY(0); }
                 }
                 .dropdown-item {
                     display: flex;
                     align-items: center;
                     gap: 10px;
-                    padding: 14px 16px;
-                    color: #dc3545;
+                    padding: 11px 14px;
+                    color: #94A3B8;
                     text-decoration: none;
                     cursor: pointer;
-                    transition: all 0.2s ease;
+                    transition: all 0.15s ease;
                     font-weight: 500;
                     border: none;
                     background: transparent;
                     width: 100%;
                     text-align: left;
-                    font-size: 14px;
+                    font-size: 13px;
+                    font-family: 'DM Sans', sans-serif;
                 }
                 .dropdown-item:hover {
-                    background: #ffe5e5;
-                    padding-left: 20px;
+                    background: rgba(255,255,255,0.06);
+                    color: #E2E8F0;
                 }
-                @keyframes slideUp {
-                    from {
-                        opacity: 0;
-                        transform: translateY(8px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
+                .dropdown-item.danger { color: #F87171; }
+                .dropdown-item.danger:hover { background: rgba(220,38,38,0.1); }
+                .dropdown-sep {
+                    height: 1px;
+                    background: rgba(255,255,255,0.05);
                 }
-                /* Scrollbar styling */
-                .sidebar-nav::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .sidebar-nav::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .sidebar-nav::-webkit-scrollbar-thumb {
-                    background: rgba(255,255,255,0.2);
-                    border-radius: 3px;
-                }
-                .sidebar-nav::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255,255,255,0.4);
-                }
-                /* Main content margin adjustment */
-                body {
-                    margin-left: 0;
-                }
+
+                /* Scrollbar */
+                .sidebar-nav::-webkit-scrollbar { width: 4px; }
+                .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+                .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
             `}</style>
 
             <div className='admin-sidebar'>
-                {/* ============ HEADER LOGO ============ */}
+                {/* Header */}
                 <div className='sidebar-header'>
-                    <div className='sidebar-header-content'>
-                        <div className='sidebar-header-icon'>
-                            <i className='fas fa-book-open'></i>
-                        </div>
-                        <div className='sidebar-header-text'>
-                            <h3>NHÀ SÁCH</h3>
-                            <p>ADMIN PANEL</p>
+                    <div className='sidebar-brand'>
+                        <span className='sidebar-brand-symbol'>◈</span>
+                        <div>
+                            <div className='sidebar-brand-name'>3G Book Store</div>
+                            <div className='sidebar-brand-sub'>Admin</div>
                         </div>
                     </div>
                 </div>
 
-                {/* ============ MENU ITEMS ============ */}
+                {/* Navigation */}
                 <nav className='sidebar-nav'>
-                    <NavLink to='/admin/books' className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
-                        <i className='fas fa-book'></i>
-                        <span>QUẢN LÝ SÁCH</span>
-                    </NavLink>
-                    <NavLink to='/admin/genres' className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
-                        <i className='fas fa-layer-group'></i>
-                        <span>QUẢN LÝ THỂ LOẠI</span>
-                    </NavLink>
-                    <NavLink to='/admin/users' className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
-                        <i className='fas fa-users'></i>
-                        <span>QUẢN LÝ TÀI KHOẢN</span>
-                    </NavLink>
-                    <NavLink to='/admin/orders' className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
-                        <i className='fas fa-shopping-cart'></i>
-                        <span>QUẢN LÝ ĐƠN HÀNG</span>
-                    </NavLink>
-                    <NavLink to='/admin/feedback' className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
-                        <i className='fas fa-comments'></i>
-                        <span>FEEDBACK</span>
-                    </NavLink>
-                    <NavLink to='/admin/coupon' className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
-                        <i className='fas fa-ticket-alt'></i>
-                        <span>MÃ GIẢM GIÁ</span>
-                    </NavLink>
+                    <div className='sidebar-section-label'>Quản lý</div>
+                    {NAV_ITEMS.map(({ to, symbol, label }) => (
+                        <NavLink
+                            key={to}
+                            to={to}
+                            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+                        >
+                            <span className='nav-symbol'>{symbol}</span>
+                            <span>{label}</span>
+                        </NavLink>
+                    ))}
                 </nav>
 
-                {/* ============ ADMIN FOOTER ============ */}
+                {/* Footer / User Menu */}
                 <div className='sidebar-footer' ref={dropdownRef}>
                     {showDropdown && (
                         <div className='admin-dropdown'>
-                            <button
-                                className='dropdown-item'
-                                onClick={() => navigate('/')}
-                            >
-                                <i className='fas fa-home'></i>
-                                <span>Về trang chủ</span>
+                            <button className='dropdown-item' onClick={() => { setShowDropdown(false); navigate('/'); }}>
+                                <span style={{ fontSize: '13px' }}>⌂</span> Về trang chủ
                             </button>
-                            <button
-                                className='dropdown-item'
-                                onClick={handleLogout}
-                            >
-                                <i className='fas fa-sign-out-alt'></i>
-                                <span>Đăng xuất</span>
+                            <div className='dropdown-sep' />
+                            <button className='dropdown-item danger' onClick={() => { setShowDropdown(false); logout(navigate); }}>
+                                <span style={{ fontSize: '13px' }}>→</span> Đăng xuất
                             </button>
                         </div>
                     )}
-
-                    <button
-                        className='admin-button'
-                        onClick={() => setShowDropdown(!showDropdown)}
-                    >
-                        <div className='admin-button-content'>
-                            <i className='admin-button-icon fas fa-user-circle'></i>
-                            <span>ADMIN</span>
+                    <button className='admin-button' onClick={() => setShowDropdown(!showDropdown)}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '16px', lineHeight: 1 }}>◎</span>
+                            <span>Admin</span>
                         </div>
-                        <i 
-                            className='admin-button-arrow fas fa-chevron-down'
-                            style={{ 
-                                transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
-                            }}
-                        ></i>
+                        <span style={{
+                            fontSize: '11px',
+                            transition: 'transform 0.2s',
+                            display: 'inline-block',
+                            transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)'
+                        }}>▾</span>
                     </button>
                 </div>
             </div>
@@ -322,4 +257,3 @@ const AdminSidebar = () => {
 };
 
 export default AdminSidebar;
-
