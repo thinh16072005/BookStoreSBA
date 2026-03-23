@@ -285,6 +285,13 @@ const AdminSidebar = () => {
                         <div className='admin-dropdown'>
                             <button
                                 className='dropdown-item'
+                                onClick={() => navigate('/')}
+                            >
+                                <i className='fas fa-home'></i>
+                                <span>Về trang chủ</span>
+                            </button>
+                            <button
+                                className='dropdown-item'
                                 onClick={handleLogout}
                             >
                                 <i className='fas fa-sign-out-alt'></i>
