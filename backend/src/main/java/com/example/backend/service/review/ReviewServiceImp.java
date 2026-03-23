@@ -1,14 +1,14 @@
 package com.example.backend.service.review;
 
-import com.example.backend.dao.BookRepository;
-import com.example.backend.dao.OrderDetailRepository;
-import com.example.backend.dao.ReviewRepository;
-import com.example.backend.dao.UserRepository;
-import com.example.backend.dto.BookToReviewDTO;
-import com.example.backend.entity.Book;
-import com.example.backend.entity.Image;
-import com.example.backend.entity.OrderDetail;
-import com.example.backend.entity.Review;
+import com.example.backend.dao.book.BookRepository;
+import com.example.backend.dao.order.OrderDetailRepository;
+import com.example.backend.dao.review.ReviewRepository;
+import com.example.backend.dao.user.UserRepository;
+import com.example.backend.dto.response.book.BookToReviewDTO;
+import com.example.backend.entity.book.Book;
+import com.example.backend.entity.book.Image;
+import com.example.backend.entity.order.OrderDetail;
+import com.example.backend.entity.review.Review;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

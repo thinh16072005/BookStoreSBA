@@ -1,6 +1,6 @@
 package com.example.backend.service.cart;
 
-import com.example.backend.dto.CartItemDTO;
+import com.example.backend.dto.response.cart.CartItemDTO;
 import org.springframework.http.ResponseEntity;
 
 public interface CartService {

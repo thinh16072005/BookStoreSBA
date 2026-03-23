@@ -1,9 +1,9 @@
 package com.example.backend.service.coupon;
 
-import com.example.backend.dao.CouponRepository;
-import com.example.backend.dto.CouponDTO;
-import com.example.backend.entity.Coupon;
-import com.example.backend.entity.Notification;
+import com.example.backend.dao.coupon.CouponRepository;
+import com.example.backend.dto.response.coupon.CouponDTO;
+import com.example.backend.entity.coupon.Coupon;
+import com.example.backend.entity.notification.Notification;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

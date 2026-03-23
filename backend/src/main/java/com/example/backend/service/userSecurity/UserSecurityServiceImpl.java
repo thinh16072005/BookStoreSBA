@@ -6,10 +6,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import com.example.backend.dao.RoleRepository;
-import com.example.backend.dao.UserRepository;
-import com.example.backend.entity.Role;
-import com.example.backend.entity.User;
+import com.example.backend.dao.user.RoleRepository;
+import com.example.backend.dao.user.UserRepository;
+import com.example.backend.entity.user.Role;
+import com.example.backend.entity.user.User;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
