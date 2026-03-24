@@ -1,6 +1,6 @@
 package com.example.backend.service.coupon;
 
-import com.example.backend.dto.CouponDTO;
+import com.example.backend.dto.response.coupon.CouponDTO;
 import org.springframework.http.ResponseEntity;
 
 public interface CouponService {

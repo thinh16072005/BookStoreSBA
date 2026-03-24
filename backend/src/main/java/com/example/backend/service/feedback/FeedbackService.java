@@ -1,7 +1,10 @@
 package com.example.backend.service.feedback;
 
-import com.example.backend.dto.FeedbackRequest;
-import com.example.backend.dto.FeedbackResponse;
+import com.example.backend.entity.user.User;
+
+
+import com.example.backend.dto.request.feedback.FeedbackRequest;
+import com.example.backend.dto.response.feedback.FeedbackResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

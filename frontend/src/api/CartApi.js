@@ -42,6 +42,7 @@ export async function updateQuantityCartItem(cartItem) {
       });
       if (response) {
          toast.success("Đã cập nhật số lượng sản phẩm trong giỏ hàng");
+         window.dispatchEvent(new Event('cart_updated'));
       }
    } catch (error) {
       console.error('Error: ', error);

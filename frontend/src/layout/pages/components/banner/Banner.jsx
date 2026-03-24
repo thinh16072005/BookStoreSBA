@@ -8,14 +8,14 @@ function Banner() {
 			<div>
 				<h3
 					data-text='A room without books is like a body without a soul.'
-					className='banner-text display-5 fw-bold'
+					className='banner-text'
 				>
 					A room without books is like a body without a soul.
 				</h3>
-				<p className=''>-- Marcus Tullius Cicero --</p>
+				<p style={{ fontFamily: "'DM Sans', sans-serif", color: '#9CA3AF', fontSize: '14px', marginTop: '10px' }}>— Marcus Tullius Cicero —</p>
 				<Link to={"/products"}>
-					<button className='btn btn-primary btn-lg text-white float-end'>
-						Khám phá ngay
+					<button className='ms-btn-grad'>
+						Khám phá ngay →
 					</button>
 				</Link>
 			</div>

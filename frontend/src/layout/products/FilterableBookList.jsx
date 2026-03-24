@@ -5,6 +5,7 @@ import { Skeleton } from "@mui/material";
 import BookProps from "./components/BookProps";
 import ToolFilter from "../pages/components/ToolFilter";
 import Pagination from "../utils/Pagination";
+import useScrollToTop from "../../hooks/ScrollToTop.jsx";
 
 const FilterableBookList = () => {
 	const [bookList, setBookList] = useState([]);
@@ -74,6 +75,7 @@ const FilterableBookList = () => {
 		}
 	}, [currentPage, genreId, keySearch]);
 
+	useScrollToTop();
 	if (loading) {
 		return (
 			<div className='container-book container mb-5 py-5 px-5 bg-light'>

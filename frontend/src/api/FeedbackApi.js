@@ -2,10 +2,19 @@ import { endpointBE } from "../layout/utils/Constant";
 import FeedbackModel from "../model/FeedbackModel";
 import { my_request } from "./Request";
 
-async function getFeedback(endPoint) {
-    const response = await my_request(endPoint);
-    const responseData = response._embedded?.feedbacks || [];
-    const feedbackList = responseData.map((feedback) => {
+export async function getAllFeedback() {
+    const token = localStorage.getItem("token");
+    const response = await fetch(endpointBE + "/feedback?page=0&size=100", {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    if (!response.ok) {
+        throw new Error("Lỗi khi tải danh sách feedback: " + response.statusText);
+    }
+    const responseData = await response.json();
+    const feedbackList = (responseData.content || []).map((feedback) => {
         const fb = new FeedbackModel();
         fb.idFeedback = feedback.idFeedback;
         fb.title = feedback.title;
@@ -16,11 +25,6 @@ async function getFeedback(endPoint) {
         return fb;
     });
     return feedbackList;
-}
-
-export async function getAllFeedback() {
-    const endPoint = endpointBE + "/feedbacks";
-    return getFeedback(endPoint);
 }
 
 export async function getTotalNumberOfFeedbacks() {
@@ -36,8 +40,8 @@ export async function getTotalNumberOfFeedbacks() {
             fb.readed = feedback.readed;
             fb.username = feedback.username;
         }));
-       console.log(feedbacks.length);
-       return feedbacks.length;
+        console.log(feedbacks.length);
+        return feedbacks.length;
     } catch (error) {
         console.error("Error fetching feedbacks:", error);
         return 0;
@@ -50,7 +54,7 @@ export async function getUnreadFeedbackCount() {
         if (!token) {
             return 0;
         }
-        const response = await fetch(endpointBE + "/api/admin/feedback/unread-count", {
+        const response = await fetch(endpointBE + "/feedback/unread-count", {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -73,7 +77,7 @@ export async function getUnreadFeedbacks() {
     try {
         const token = localStorage.getItem("token");
         if (!token) return [];
-        const response = await fetch(endpointBE + "/api/admin/feedback?page=0&size=100", {
+        const response = await fetch(endpointBE + "/feedback?page=0&size=100", {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -81,7 +85,7 @@ export async function getUnreadFeedbacks() {
         const responseData = await response.json();
         const unreadFeedbacks = responseData.content
             .filter((feedback) => {
-                const v = feedback.isReaded;
+                const v = feedback.readed;
                 if (v === false) return true;
                 if (v === "false") return true;
                 return false;
@@ -92,7 +96,7 @@ export async function getUnreadFeedbacks() {
                 fb.title = feedback.title;
                 fb.comment = feedback.comment;
                 fb.dateCreated = feedback.dateCreated;
-                fb.readed = feedback.isReaded;
+                fb.readed = feedback.readed;
                 fb.username = feedback.username;
                 return fb;
             });
@@ -100,5 +104,37 @@ export async function getUnreadFeedbacks() {
     } catch (e) {
         console.error("Error getUnreadFeedbacks:", e);
         return [];
+    }
+}
+
+export async function markFeedbackAsRead(idFeedback) {
+    try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(endpointBE + `/feedback/${idFeedback}/read`, {
+            method: "PUT",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.ok;
+    } catch (error) {
+        console.error("Error marking feedback as read:", error);
+        return false;
+    }
+}
+
+export async function deleteFeedback(idFeedback) {
+    try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(endpointBE + `/feedback/${idFeedback}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.ok;
+    } catch (error) {
+        console.error("Error deleting feedback:", error);
+        return false;
     }
 }
