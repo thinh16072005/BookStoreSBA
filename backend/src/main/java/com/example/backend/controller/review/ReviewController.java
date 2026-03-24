@@ -29,5 +29,4 @@ public class ReviewController {
         return reviewService.submitReview(jsonNode);
     }
 }
-// tuanuser - pass : tuan123456
-// API để Frontend gọi
+
