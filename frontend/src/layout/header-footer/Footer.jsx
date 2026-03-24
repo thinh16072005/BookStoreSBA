@@ -2,228 +2,135 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 function Footer() {
+    return (
+        <footer style={{ background: '#0F172A', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif" }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '56px 24px 0' }}>
+                <div className='row g-5'>
+                    {/* Brand */}
+                    <div className='col-lg-4 col-md-6'>
+                        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '22px', color: '#F8FAFC', marginBottom: '12px', letterSpacing: '0.3px' }}>
+                            <span style={{ color: '#2C7B8F', marginRight: '8px' }}>◈</span>3G Book Store
+                        </div>
+                        <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#64748B', maxWidth: '260px', marginBottom: '24px' }}>
+                            Hiệu sách trực tuyến — nơi tri thức gặp gỡ.
+                            Hàng ngàn tựa sách, giao hàng nhanh, giá tốt.
+                        </p>
+                        <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.9 }}>
+                            <div>◌ <strong style={{ color: '#94A3B8' }}>Địa chỉ:</strong> FPT Software Đà Nẵng</div>
+                            <div>◌ <strong style={{ color: '#94A3B8' }}>Email:</strong> hello@mocsach.vn</div>
+                            <div>◌ <strong style={{ color: '#94A3B8' }}>Hotline:</strong> 1800 123 456</div>
+                        </div>
+                    </div>
 
-	return (
-		// <!-- Footer -->
-		<footer className='bg-primary text-center text-white'>
-			{/* <!-- Grid container --> */}
-			<div className='container p-4'>
-				{/* <!-- Section: Social media --> */}
-				<section className='mb-4'>
-					{/* <!-- Facebook --> */}
-					<a
-						className='btn btn-outline-light btn-floating m-1'
-						href='#!'
-						role='button'
-					>
-						<i className='fab fa-facebook-f'></i>
-					</a>
+                    {/* Dịch vụ */}
+                    <div className='col-lg-2 col-md-6'>
+                        <h6 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '11px', fontWeight: 600, letterSpacing: '1.2px', textTransform: 'uppercase', color: '#475569', marginBottom: '18px' }}>
+                            Dịch vụ
+                        </h6>
+                        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', padding: 0, margin: 0 }}>
+                            {['Điều khoản sử dụng', 'Chính sách bảo mật', 'Chính sách thanh toán', 'Hệ thống nhà sách'].map(t => (
+                                <li key={t}>
+                                    <a href='#!' style={{ color: '#64748B', fontSize: '14px', textDecoration: 'none', transition: 'color 0.2s' }}
+                                       onMouseEnter={e => e.currentTarget.style.color = '#CBD5E1'}
+                                       onMouseLeave={e => e.currentTarget.style.color = '#64748B'}>
+                                        {t}
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
 
-					{/* <!-- Twitter --> */}
-					<a
-						className='btn btn-outline-light btn-floating m-1'
-						href='#!'
-						role='button'
-					>
-						<i className='fab fa-twitter'></i>
-					</a>
+                    {/* Hỗ trợ */}
+                    <div className='col-lg-2 col-md-6'>
+                        <h6 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '11px', fontWeight: 600, letterSpacing: '1.2px', textTransform: 'uppercase', color: '#475569', marginBottom: '18px' }}>
+                            Hỗ trợ
+                        </h6>
+                        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', padding: 0, margin: 0 }}>
+                            {['Đổi trả hoàn tiền', 'Bảo hành bồi hoàn', 'Chính sách vận chuyển', 'Chính sách khách sỉ'].map(t => (
+                                <li key={t}>
+                                    <a href='#!' style={{ color: '#64748B', fontSize: '14px', textDecoration: 'none', transition: 'color 0.2s' }}
+                                       onMouseEnter={e => e.currentTarget.style.color = '#CBD5E1'}
+                                       onMouseLeave={e => e.currentTarget.style.color = '#64748B'}>
+                                        {t}
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
 
-					{/* <!-- Google --> */}
-					<a
-						className='btn btn-outline-light btn-floating m-1'
-						href='#!'
-						role='button'
-					>
-						<i className='fab fa-google'></i>
-					</a>
+                    {/* Newsletter */}
+                    <div className='col-lg-4 col-md-6'>
+                        <h6 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '11px', fontWeight: 600, letterSpacing: '1.2px', textTransform: 'uppercase', color: '#475569', marginBottom: '18px' }}>
+                            Nhận bản tin
+                        </h6>
+                        <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '16px', lineHeight: 1.6 }}>
+                            Nhận thông báo về sách mới và ưu đãi độc quyền.
+                        </p>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <input
+                                type='email'
+                                placeholder='Địa chỉ email của bạn'
+                                style={{
+                                    flex: 1, padding: '10px 14px', borderRadius: '8px',
+                                    border: '1.5px solid #1E293B', background: '#1E293B',
+                                    color: '#F1F5F9', fontSize: '13.5px', fontFamily: "'DM Sans', sans-serif",
+                                    outline: 'none',
+                                }}
+                                onFocus={e => e.currentTarget.style.borderColor = '#2C7B8F'}
+                                onBlur={e => e.currentTarget.style.borderColor = '#1E293B'}
+                            />
+                            <button style={{
+                                padding: '10px 18px', borderRadius: '8px', border: 'none',
+                                background: '#2C7B8F', color: '#fff', fontSize: '13.5px',
+                                fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                                flexShrink: 0, transition: 'background 0.2s ease',
+                            }}
+                                onMouseEnter={e => e.currentTarget.style.background = '#1A5E70'}
+                                onMouseLeave={e => e.currentTarget.style.background = '#2C7B8F'}
+                            >
+                                Đăng ký
+                            </button>
+                        </div>
 
-					{/* <!-- Instagram --> */}
-					<a
-						className='btn btn-outline-light btn-floating m-1'
-						href='#!'
-						role='button'
-					>
-						<i className='fab fa-instagram'></i>
-					</a>
+                        <div style={{ marginTop: '24px' }}>
+                            <div style={{ fontSize: '11px', color: '#475569', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px', fontWeight: 600 }}>Theo dõi</div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                {[['fb', 'F'], ['tw', 'X'], ['ig', 'Ig'], ['yt', 'Yt']].map(([k, l]) => (
+                                    <a key={k} href='#!' style={{
+                                        width: 32, height: 32, borderRadius: '8px',
+                                        background: '#1E293B', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        color: '#64748B', fontSize: '12px', fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
+                                        textDecoration: 'none', transition: 'all 0.2s ease',
+                                    }}
+                                        onMouseEnter={e => { e.currentTarget.style.background = '#2C7B8F'; e.currentTarget.style.color = '#fff'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = '#1E293B'; e.currentTarget.style.color = '#64748B'; }}
+                                    >
+                                        {l}
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-					{/* <!-- Linkedin --> */}
-					<a
-						className='btn btn-outline-light btn-floating m-1'
-						href='#!'
-						role='button'
-					>
-						<i className='fab fa-linkedin-in'></i>
-					</a>
-
-					{/* <!-- Github --> */}
-					<a
-						className='btn btn-outline-light btn-floating m-1'
-						href='#!'
-						role='button'
-					>
-						<i className='fab fa-github'></i>
-					</a>
-				</section>
-				{/* <!-- Section: Social media --> */}
-
-				{/* <!-- Section: Form --> */}
-				<section className=''>
-					<form action=''>
-						{/* <!--Grid row--> */}
-						<div className='row d-flex justify-content-center'>
-							<div className='col-auto'>
-								<p className='pt-2'>
-									<strong>Đăng ký nhận bản tin</strong>
-								</p>
-							</div>
-
-							<div className='col-md-5 col-12'>
-								{/* <!-- Email input --> */}
-								<div className=' form-white mb-4'>
-									<input
-										type='email'
-										id='form5Example21'
-										className='form-control'
-										placeholder='Nhập Email'
-									/>
-								</div>
-							</div>
-
-							<div className='col-auto'>
-								{/* <!-- Submit button --> */}
-								<button
-									type='button'
-									className='btn btn-outline-light mb-4'
-								>
-									Đăng ký
-								</button>
-							</div>
-						</div>
-						{/* <!--Grid row--> */}
-					</form>
-				</section>
-				{/* <!-- Section: Form --> */}
-
-				{/* <!-- Section: Links --> */}
-				<section className=''>
-					{/* <!--Grid row--> */}
-					<div className='row'>
-						<div className='col-lg-6 col-md-12'>
-							<div className='row'>
-								<div className='col-lg-4 col-md-12 mb-4'>
-									<h5 className='text-uppercase'>DỊCH VỤ</h5>
-
-									<ul className='list-unstyled mb-0'>
-										<li>
-											<a href='#!' className='text-white'>
-												Điều khoản sử dụng
-											</a>
-										</li>
-										<li>
-											<a href='#!' className='text-white'>
-												Chính sách bảo mật thông tin cá nhân
-											</a>
-										</li>
-										<li>
-											<a href='#!' className='text-white'>
-												Chính sách bảo mật thanh toán
-											</a>
-										</li>
-										<li>
-											<a href='#!' className='text-white'>
-												Hệ thống trung tâm - nhà sách
-											</a>
-										</li>
-									</ul>
-								</div>
-
-								<div className='col-lg-4 col-md-12 mb-4'>
-									<h5 className='text-uppercase'>HỖ TRỢ</h5>
-
-									<ul className='list-unstyled mb-0'>
-										<li>
-											<a href='#!' className='text-white'>
-												Chính sách đổi - trả - hoàn tiền
-											</a>
-										</li>
-										<li>
-											<a href='#!' className='text-white'>
-												Chính sách bảo hành - bồi hoàn
-											</a>
-										</li>
-										<li>
-											<a href='#!' className='text-white'>
-												Chính sách vận chuyển
-											</a>
-										</li>
-										<li>
-											<a href='#!' className='text-white'>
-												Chính sách khách sỉ
-											</a>
-										</li>
-									</ul>
-								</div>
-
-								<div className='col-lg-4 col-md-12 mb-4'>
-									<h5 className='text-uppercase'>TÀI KHOẢN CỦA TÔI</h5>
-
-									<ul className='list-unstyled mb-0'>
-										<li>
-											<Link to={"/login"} className='text-white'>
-												Đăng nhập/Tạo mới tài khoản
-											</Link>
-										</li>
-										<li>
-											<a href='#!' className='text-white'>
-												Thay đổi địa chỉ khách hàng
-											</a>
-										</li>
-										<li>
-											<a href='#!' className='text-white'>
-												Chi tiết tài khoản
-											</a>
-										</li>
-										<li>
-											<a href='#!' className='text-white'>
-												Lịch sử mua hàng
-											</a>
-										</li>
-									</ul>
-								</div>
-							</div>
-						</div>
-						<div className='col-lg-6 col-md-12'>
-							<iframe
-								title='map'
-								src='https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3835.6737349979257!2d108.25950117490213!3d15.978405784688055!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314210f2d038af0f%3A0x51c64b1130497f99!2sFPT%20Software%20Danang!5e0!3m2!1svi!2s!4v1761706184642!5m2!1svi!2s'
-								width='500'
-								height='200'
-								style={{ border: 0 }}
-								loading='lazy'
-								referrerPolicy='no-referrer-when-downgrade'
-							></iframe>
-						</div>
-					</div>
-					{/* <!--Grid row--> */}
-				</section>
-				{/* <!-- Section: Links --> */}
-			</div>
-			{/* <!-- Grid container --> */}
-
-			{/* <!-- Copyright --> */}
-			<div
-				className='text-center p-3'
-				style={{ backgroundColor: "rgba(0, 0, 0, 0.2)" }}
-			>
-				© 2023 Copyright
-				<span className='text-white text-decoration-underline'>
-					{" "}
-					bookstore
-				</span>
-			</div>
-			{/* <!-- Copyright --> */}
-		</footer>
-	);
+                {/* Divider */}
+                <div style={{ borderTop: '1px solid #1E293B', marginTop: '48px', padding: '24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#475569' }}>
+                        © 2024 3G Book Store. Tất cả quyền được bảo lưu.
+                    </p>
+                    <div style={{ display: 'flex', gap: '20px' }}>
+                        {['Bảo mật', 'Điều khoản', 'Cookies'].map(t => (
+                            <a key={t} href='#!' style={{ fontSize: '13px', color: '#475569', textDecoration: 'none', transition: 'color 0.2s' }}
+                               onMouseEnter={e => e.currentTarget.style.color = '#94A3B8'}
+                               onMouseLeave={e => e.currentTarget.style.color = '#475569'}>
+                                {t}
+                            </a>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </footer>
+    );
 }
 
 export default Footer;

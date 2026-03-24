@@ -1,34 +1,95 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import GenreModel from "../../model/GenreModel";
 import { endpointBE } from "../utils/Constant";
 import { getAllGenres } from "../../api/GenreApi";
 import { getBookCountByGenreId } from "../../api/BookApi";
 import RequireAdmin from "./RequireAdmin";
 import { toast } from "react-toastify";
 
-// Hàm lấy token từ localStorage để gửi kèm trong request
 const getToken = () => localStorage.getItem("token");
-// Trang quản lý thể loại: danh sách, thêm, sửa, xóa (CRUD cơ bản)
-
 const emptyForm = { nameGenre: "" };
+
+/* ─── Shared style tokens ─── */
+const S = {
+    wrap: { background: '#fff', borderRadius: '12px', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', overflow: 'hidden', border: '1px solid #F1F5F9' },
+    table: { width: '100%', borderCollapse: 'collapse', fontFamily: "'DM Sans', sans-serif", fontSize: '13.5px' },
+    thead: { background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' },
+    th: { padding: '12px 16px', textAlign: 'left', fontWeight: 600, fontSize: '11px', letterSpacing: '0.7px', textTransform: 'uppercase', color: '#94A3B8', whiteSpace: 'nowrap' },
+    td: { padding: '12px 16px', borderBottom: '1px solid #F1F5F9', color: '#374151', verticalAlign: 'middle' },
+    actionBtn: (v) => ({
+        padding: '5px 12px', borderRadius: '8px',
+        border: `1.5px solid ${v === 'edit' ? '#2C7B8F' : '#EF4444'}`,
+        background: 'transparent', color: v === 'edit' ? '#2C7B8F' : '#EF4444',
+        fontSize: '13px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+        fontWeight: 600, lineHeight: 1, transition: 'all 0.18s ease',
+    }),
+    input: {
+        padding: '9px 12px', border: '1.5px solid #E2E8F0', borderRadius: '8px',
+        fontFamily: "'DM Sans', sans-serif", fontSize: '14px', outline: 'none',
+        width: '100%', boxSizing: 'border-box', color: '#1E293B',
+    },
+    label: { display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '13px', color: '#374151' },
+};
+
+/* ─── Delete confirm modal ─── */
+const DeleteConfirm = ({ name, onConfirm, onCancel, loading }) => (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
+        <div style={{ background: '#fff', borderRadius: '14px', padding: '28px 32px', maxWidth: '400px', width: '90%', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', fontFamily: "'DM Sans', sans-serif" }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: '#EF4444', marginBottom: '10px' }}>Xóa thể loại</div>
+            <p style={{ color: '#475569', marginBottom: '20px', fontSize: '14px', lineHeight: 1.6 }}>
+                Bạn có chắc muốn xóa <strong style={{ color: '#1E293B' }}>"{name}"</strong>?
+            </p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button onClick={onCancel} style={{ ...S.actionBtn('edit'), border: '1.5px solid #CBD5E1', color: '#64748B' }}>Hủy</button>
+                <button onClick={onConfirm} disabled={loading} style={{ ...S.actionBtn('del'), background: '#EF4444', color: '#fff', border: 'none', minWidth: '70px' }}>
+                    {loading ? '...' : '⊗ Xóa'}
+                </button>
+            </div>
+        </div>
+    </div>
+);
+
+/* ─── Inline form ─── */
+const GenreForm = ({ form, setForm, onSubmit, onCancel }) => (
+    <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '20px 24px', marginBottom: '20px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '16px', fontWeight: 400, color: '#1E293B', marginBottom: '16px' }}>
+            {form.idGenre ? 'Chỉnh sửa thể loại' : 'Thêm thể loại mới'}
+        </div>
+        <form onSubmit={onSubmit}>
+            <div style={{ maxWidth: '360px', marginBottom: '16px' }}>
+                <label style={S.label}>Tên thể loại <span style={{ color: '#EF4444' }}>*</span></label>
+                <input
+                    style={S.input}
+                    value={form.nameGenre}
+                    onChange={e => setForm({ ...form, nameGenre: e.target.value })}
+                    placeholder="Nhập tên thể loại..."
+                    required
+                />
+            </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="submit" style={{ ...S.actionBtn('edit'), background: '#2C7B8F', color: '#fff', border: 'none', padding: '8px 20px' }}>
+                    ✓ {form.idGenre ? 'Cập nhật' : 'Thêm mới'}
+                </button>
+                <button type="button" onClick={onCancel} style={{ ...S.actionBtn('edit'), border: '1.5px solid #CBD5E1', color: '#64748B' }}>Hủy</button>
+            </div>
+        </form>
+    </div>
+);
 
 const GenreManagement = () => {
     const [genres, setGenres] = useState([]);
     const [form, setForm] = useState(emptyForm);
     const [keyword, setKeyword] = useState("");
     const [loading, setLoading] = useState(false);
-    const [showForm, setShowForm] = useState(false); // trạng thái hiển thị form
+    const [showForm, setShowForm] = useState(false);
+    const [hoverRow, setHoverRow] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     const loadGenres = async () => {
         setLoading(true);
-        try {
-            const list = await getAllGenres(); // dùng sẵn API GET
-            setGenres(list);
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoading(false);
-        }
+        try { setGenres(await getAllGenres()); }
+        catch (e) { console.error(e); }
+        finally { setLoading(false); }
     };
 
     useEffect(() => { loadGenres(); }, []);
@@ -39,176 +100,119 @@ const GenreManagement = () => {
         return genres.filter(g => (g.nameGenre || '').toLowerCase().includes(k));
     }, [genres, keyword]);
 
-    // Chọn thể loại để sửa: nạp dữ liệu và hiển thị form
-    const onEdit = (g) => {
-        setForm({ idGenre: g.idGenre, nameGenre: g.nameGenre });
-        setShowForm(true); // hiển thị form để chỉnh sửa
-    };
+    const onEdit = (g) => { setForm({ idGenre: g.idGenre, nameGenre: g.nameGenre }); setShowForm(true); };
+    const onAdd = () => { setForm(emptyForm); setShowForm(true); };
+    const onCancel = () => { setShowForm(false); setForm(emptyForm); };
 
-    // Bắt đầu thêm mới: reset form và hiển thị form
-    const onAdd = () => {
-        setForm(emptyForm); // reset form về rỗng
-        setShowForm(true); // hiển thị form để điền thông tin
-    };
-
-    const onDelete = async (id) => {
-        if (!window.confirm('Xóa thể loại này?')) return;
-
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        setDeleting(true);
         try {
-            // Kiểm tra xem genre có sách không
-            const bookCount = await getBookCountByGenreId(id);
-
-            if (bookCount > 0) {
-                toast.error(`Không thể xóa thể loại này vì đang có ${bookCount} quyển sách sử dụng!`);
-                return;
-            }
-
-            // Gửi request DELETE kèm token để backend xác thực quyền ADMIN
-            const response = await fetch(`${endpointBE}/genre/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${getToken()}` // Gửi token để xác thực quyền ADMIN
-                }
+            const bookCount = await getBookCountByGenreId(deleteTarget.id);
+            if (bookCount > 0) { toast.error(`Không thể xóa — đang có ${bookCount} sách sử dụng thể loại này!`); setDeleteTarget(null); return; }
+            const res = await fetch(`${endpointBE}/genre/${deleteTarget.id}`, {
+                method: 'DELETE', headers: { Authorization: `Bearer ${getToken()}` }
             });
-
-            if (response.ok || response.status === 204) {
-                toast.success("Xóa thể loại thành công!");
-                await loadGenres();
-            } else {
-                const errorText = await response.text();
-                toast.error(errorText || "Xóa thể loại thất bại!");
-            }
-        } catch (error) {
-            console.error(error);
-            toast.error("Đã xảy ra lỗi khi xóa!");
-        }
-    };
-
-    // Hủy form: ẩn form và reset
-    const onCancel = () => {
-        setShowForm(false); // ẩn form
-        setForm(emptyForm); // reset form về rỗng
+            if (res.ok || res.status === 204) { toast.success("Xóa thể loại thành công!"); await loadGenres(); }
+            else { const t = await res.text(); toast.error(t || "Xóa thể loại thất bại!"); }
+        } catch { toast.error("Đã xảy ra lỗi khi xóa!"); }
+        finally { setDeleting(false); setDeleteTarget(null); }
     };
 
     const onSubmit = async (e) => {
         e.preventDefault();
-
-        // Kiểm tra validation: tên thể loại không được rỗng
-        if (!form.nameGenre.trim()) {
-            toast.warning("Vui lòng nhập tên thể loại!");
-            return;
-        }
-
+        if (!form.nameGenre.trim()) { toast.warning("Vui lòng nhập tên thể loại!"); return; }
         try {
             if (!form.idGenre) {
-                // Thêm mới: POST /genre - gửi kèm token để xác thực quyền ADMIN
-                const response = await toast.promise(
-                    fetch(`${endpointBE}/genre`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${getToken()}` // Gửi token để xác thực quyền ADMIN
-                        },
-                        body: JSON.stringify({ nameGenre: form.nameGenre })
-                    }),
-                    { pending: "Đang thêm thể loại mới..." }
-                );
-
-                if (response.ok) {
-                    toast.success("Thêm thể loại thành công!");
-                    setForm(emptyForm);
-                    setShowForm(false); // ẩn form sau khi thêm thành công
-                    await loadGenres(); // tải lại danh sách
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    toast.error(errorData.message || "Thêm thể loại thất bại!");
-                }
+                const res = await fetch(`${endpointBE}/genre`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+                    body: JSON.stringify({ nameGenre: form.nameGenre })
+                });
+                if (res.ok) { toast.success("Thêm thể loại thành công!"); setForm(emptyForm); setShowForm(false); await loadGenres(); }
+                else { const d = await res.json().catch(() => ({})); toast.error(d.message || "Thêm thất bại!"); }
             } else {
-                // Cập nhật: PUT /genre/{id} - gửi kèm token để xác thực quyền ADMIN
-                const response = await toast.promise(
-                    fetch(`${endpointBE}/genre/${form.idGenre}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${getToken()}` // Gửi token để xác thực quyền ADMIN
-                        },
-                        body: JSON.stringify({ nameGenre: form.nameGenre })
-                    }),
-                    { pending: "Đang cập nhật thể loại..." }
-                );
-
-                if (response.ok || response.status === 204) {
-                    toast.success("Cập nhật thể loại thành công!");
-                    setShowForm(false); // ẩn form sau khi cập nhật thành công
-                    await loadGenres(); // tải lại danh sách
-                } else {
-                    toast.error("Cập nhật thể loại thất bại!");
-                }
+                const res = await fetch(`${endpointBE}/genre/${form.idGenre}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+                    body: JSON.stringify({ nameGenre: form.nameGenre })
+                });
+                if (res.ok || res.status === 204) { toast.success("Cập nhật thành công!"); setShowForm(false); await loadGenres(); }
+                else { toast.error("Cập nhật thất bại!"); }
             }
-        } catch (error) {
-            console.error(error);
-            toast.error("Đã xảy ra lỗi trong quá trình xử lý!");
-        }
+        } catch { toast.error("Đã xảy ra lỗi!"); }
     };
 
     return (
-        <div className='container my-4'>
-            <div className='d-flex align-items-center justify-content-between mb-3'>
-                <h3>Quản lý thể loại</h3>
-                <div className='d-flex gap-2'>
-                    <input className='form-control' placeholder='Tìm theo tên thể loại...'
-                        value={keyword} onChange={(e)=>setKeyword(e.target.value)} style={{ width: 300 }} />
-                    <button className='btn btn-success' onClick={onAdd}>+ Thêm thể loại</button>
+        <div style={{ padding: '24px 12px', maxWidth: '960px', margin: '0 auto' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: '22px', color: '#1E293B', margin: 0 }}>
+                    Quản lý thể loại
+                </h3>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <input
+                        style={{ ...S.input, width: '260px' }}
+                        placeholder="Tìm theo tên thể loại..."
+                        value={keyword}
+                        onChange={e => setKeyword(e.target.value)}
+                    />
+                    <button
+                        onClick={onAdd}
+                        style={{ ...S.actionBtn('edit'), background: 'linear-gradient(135deg,#2C7B8F,#1A5E70)', color: '#fff', border: 'none', padding: '9px 18px', whiteSpace: 'nowrap' }}
+                    >+ Thêm thể loại</button>
                 </div>
             </div>
 
-            {/* Form thêm/sửa - chỉ hiển thị khi showForm = true */}
-            {showForm && (
-                <form onSubmit={onSubmit} className='card p-3 mb-4'>
-                <div className='row g-3'>
-                    <div className='col-md-6'>
-                        <label className='form-label'>Tên thể loại</label>
-                        <input className='form-control' value={form.nameGenre}
-                            onChange={(e)=>setForm({...form, nameGenre: e.target.value})} required />
-                    </div>
-                </div>
-                <div className='mt-3'>
-                    <button className='btn btn-primary me-2' type='submit'>Xác nhận</button>
-                    <button className='btn btn-secondary me-2' type='button' onClick={()=>setForm(emptyForm)}>Làm mới</button>
-                    <button className='btn btn-outline-secondary' type='button' onClick={onCancel}>Hủy</button>
-                </div>
-            </form>
-            )}
+            {showForm && <GenreForm form={form} setForm={setForm} onSubmit={onSubmit} onCancel={onCancel} />}
 
-            <div className='card'>
-                <div className='table-responsive'>
-                    <table className='table table-striped align-middle'>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Tên thể loại</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading && (<tr><td colSpan={3} className='text-center'>Đang tải...</td></tr>)}
+            <div style={S.wrap}>
+                <table style={S.table}>
+                    <thead style={S.thead}>
+                        <tr>
+                            <th style={{ ...S.th, width: '10%' }}>ID</th>
+                            <th style={{ ...S.th, width: '60%', textAlign: 'center' }}>Tên thể loại</th>
+                            <th style={{ ...S.th, width: '30%' }}>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                            {loading && (
+                                <tr><td colSpan={3} style={{ ...S.td, textAlign: 'center', color: '#94A3B8', padding: '32px' }}>Đang tải...</td></tr>
+                            )}
                             {!loading && filtered.length === 0 && (
-                                <tr><td colSpan={3} className='text-center'>Không có dữ liệu</td></tr>
+                                <tr><td colSpan={3} style={{ ...S.td, textAlign: 'center', color: '#94A3B8', padding: '40px' }}>Không có dữ liệu</td></tr>
                             )}
                             {!loading && filtered.map(g => (
-                                <tr key={g.idGenre}>
-                                    <td>{g.idGenre}</td>
-                                    <td>{g.nameGenre}</td>
-                                    <td>
-                                        <button className='btn btn-sm btn-outline-primary me-2' onClick={()=>onEdit(g)}>Sửa</button>
-                                        <button className='btn btn-sm btn-outline-danger' onClick={()=>onDelete(g.idGenre)}>Xóa</button>
+                                <tr key={g.idGenre}
+                                    onMouseEnter={() => setHoverRow(g.idGenre)}
+                                    onMouseLeave={() => setHoverRow(null)}
+                                    style={{ background: hoverRow === g.idGenre ? '#F8FAFC' : '#fff', transition: 'background 0.15s' }}
+                                >
+                                    <td style={{ ...S.td, color: '#94A3B8', fontSize: '12px', fontWeight: 600 }}>#{g.idGenre}</td>
+                                    <td style={{ ...S.td, fontWeight: 500, color: '#1E293B', textAlign: 'center' }}>{g.nameGenre}</td>
+                                    <td style={S.td}>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button style={S.actionBtn('edit')} onClick={() => onEdit(g)}
+                                                onMouseEnter={e => { e.currentTarget.style.background = '#2C7B8F'; e.currentTarget.style.color = '#fff'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#2C7B8F'; }}>
+                                                ✎ Sửa
+                                            </button>
+                                            <button style={S.actionBtn('del')} onClick={() => setDeleteTarget({ id: g.idGenre, name: g.nameGenre })}
+                                                onMouseEnter={e => { e.currentTarget.style.background = '#EF4444'; e.currentTarget.style.color = '#fff'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#EF4444'; }}>
+                                                ⊗ Xóa
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-            </div>
+
+            {deleteTarget && (
+                <DeleteConfirm name={deleteTarget.name} onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} loading={deleting} />
+            )}
         </div>
     );
 };

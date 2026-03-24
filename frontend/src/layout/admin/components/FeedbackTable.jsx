@@ -1,103 +1,130 @@
-// File: ./components/feedback/FeedbackTable.jsx
-// trang cụ thể quản lý feedback
-// Đây là file "não" của trang admin. Nó gọi các API backend chính xác mà chúng ta đã tạo:
-
-import { Box, CircularProgress, IconButton, Tooltip, Chip, Typography } from "@mui/material";
-import { useEffect, useState, useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import CheckIcon from "@mui/icons-material/Check";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { VisibilityOutlined, CloseOutlined } from "@mui/icons-material";
 import { getAllFeedback, markFeedbackAsRead, deleteFeedback } from "../../../api/FeedbackApi";
 
-export const FeedbackTable = ({ 
-    searchKeyword = "", 
-    reloadKey = 0,
-    onFeedbackSelected,
-    onReload 
-}) => {
+/* ─── Shared style tokens ─── */
+const S = {
+    wrap: { background: '#fff', borderRadius: '12px', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', overflow: 'hidden', border: '1px solid #F1F5F9' },
+    table: { width: '100%', borderCollapse: 'collapse', fontFamily: "'DM Sans', sans-serif", fontSize: '13.5px' },
+    thead: { background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' },
+    th: { padding: '12px 16px', textAlign: 'left', fontWeight: 600, fontSize: '11px', letterSpacing: '0.7px', textTransform: 'uppercase', color: '#94A3B8', whiteSpace: 'nowrap' },
+    td: { padding: '12px 16px', borderBottom: '1px solid #F1F5F9', color: '#374151', verticalAlign: 'middle' },
+    actionBtn: (v) => ({
+        padding: '5px 12px', borderRadius: '8px',
+        border: `1.5px solid ${v === 'teal' ? '#2C7B8F' : v === 'green' ? '#16A34A' : '#EF4444'}`,
+        background: 'transparent',
+        color: v === 'teal' ? '#2C7B8F' : v === 'green' ? '#16A34A' : '#EF4444',
+        fontSize: '13px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+        fontWeight: 600, lineHeight: 1, transition: 'all 0.18s ease',
+    }),
+    overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 },
+};
+
+/* ─── Detail Modal ─── */
+const DetailModal = ({ feedback, onClose, onMarkRead, onDelete }) => {
+    if (!feedback) return null;
+    return (
+        <div style={S.overlay}>
+            <div style={{ background: '#fff', borderRadius: '14px', maxWidth: '560px', width: '92%', maxHeight: '88vh', overflow: 'auto', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', fontFamily: "'DM Sans', sans-serif" }}>
+                {/* Header */}
+                <div style={{ padding: '18px 24px', background: 'linear-gradient(135deg,#2C7B8F,#1A5E70)', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '17px', fontWeight: 400 }}>Chi tiết Feedback</div>
+                    <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '20px', cursor: 'pointer', lineHeight: 1, padding: 0 }}>✕</button>
+                </div>
+                {/* Body */}
+                <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div>
+                        <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: '4px' }}>Tiêu đề</div>
+                        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '18px', fontWeight: 400, color: '#1E293B' }}>{feedback.title}</div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div>
+                            <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: '4px' }}>Người dùng</div>
+                            <div style={{ fontWeight: 500, color: '#374151' }}>{feedback.username || '—'}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: '4px' }}>Ngày tạo</div>
+                            <div style={{ fontWeight: 500, color: '#374151' }}>
+                                {feedback.dateCreated ? new Date(feedback.dateCreated).toLocaleString('vi-VN') : '—'}
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600, letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: '8px' }}>Nhận xét</div>
+                        <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', color: '#374151', lineHeight: 1.7, whiteSpace: 'pre-wrap', minHeight: '80px' }}>
+                            {feedback.comment}
+                        </div>
+                    </div>
+                    <div style={{ padding: '10px 14px', borderRadius: '8px', background: feedback.readed ? '#ECFDF5' : '#FEF9C3', border: `1px solid ${feedback.readed ? '#BBF7D0' : '#FDE68A'}` }}>
+                        <span style={{ fontWeight: 600, color: feedback.readed ? '#166534' : '#854D0E', fontSize: '13px' }}>
+                            {feedback.readed ? '✓ Đã duyệt' : '◈ Chưa duyệt'}
+                        </span>
+                    </div>
+                </div>
+                {/* Footer */}
+                <div style={{ padding: '14px 24px', borderTop: '1px solid #F1F5F9', display: 'flex', gap: '10px', justifyContent: 'flex-end', background: '#FAFAFA' }}>
+                    {!feedback.readed && (
+                        <button onClick={() => { onMarkRead(feedback.idFeedback); onClose(); }}
+                            style={{ ...S.actionBtn('green'), background: '#16A34A', color: '#fff', border: 'none', padding: '8px 16px' }}>
+                            ✓ Đánh dấu đã đọc
+                        </button>
+                    )}
+                    <button onClick={() => { onDelete(feedback.idFeedback); onClose(); }}
+                        style={{ ...S.actionBtn('red'), background: '#EF4444', color: '#fff', border: 'none', padding: '8px 16px' }}>
+                        ⊗ Xóa
+                    </button>
+                    <button onClick={onClose}
+                        style={{ ...S.actionBtn('teal'), border: '1.5px solid #CBD5E1', color: '#64748B' }}>
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/* ─── Main component ─── */
+export const FeedbackTable = ({ searchKeyword = "", reloadKey = 0 }) => {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState([]);
     const [selectedFeedback, setSelectedFeedback] = useState(null);
     const [isDataChanged, setIsDataChanged] = useState(false);
+    const [hoverRow, setHoverRow] = useState(null);
 
-    // [SỬA] Bước 1: Lấy danh sách feedback từ API dùng chung
     useEffect(() => {
-        const fetchData = async () => {
+        const fetch = async () => {
             setLoading(true);
             try {
                 const feedbacks = await getAllFeedback();
-                
-                // Sắp xếp: feedback chưa đọc lên đầu
-                const sortedFeedbacks = [...feedbacks].sort((a, b) => {
-                    if (a.readed === b.readed) return 0;
-                    return a.readed ? 1 : -1; // readed=false lên đầu
-                });
-
-                setData(sortedFeedbacks.map(fb => ({ ...fb, id: fb.idFeedback })));
+                const sorted = [...feedbacks].sort((a, b) => a.readed === b.readed ? 0 : a.readed ? 1 : -1);
+                setData(sorted.map(fb => ({ ...fb, id: fb.idFeedback })));
             } catch (err) {
                 toast.error("Lỗi khi tải danh sách feedback: " + err.message);
             } finally {
                 setLoading(false);
             }
         };
-    
-        fetchData();
+        fetch();
     }, [isDataChanged, reloadKey]);
-    
 
-    // [SỬA] Bước 2: Sửa API "Duyệt" dùng hàm từ FeedbackApi
-    const handleChangeIsReaded = async (idFeedback) => {
-        // Sửa lỗi logic: Tìm đúng feedback đang bấm
-        const feedback = data.find(f => f.idFeedback === idFeedback);
-        if (feedback?.readed === true) {
-            toast.warning("Feedback này đã duyệt rồi");
-            return;
-        }
-
-        toast.promise(
-            markFeedbackAsRead(idFeedback)
-                .then((success) => {
-                    if (success) {
-                        toast.success("Duyệt thành công");
-                        setIsDataChanged(!isDataChanged); // Tải lại bảng
-                    } else {
-                        toast.error("Lỗi khi duyệt");
-                    }
-                })
-                .catch((error) => {
-                    toast.error("Lỗi khi duyệt");
-                    console.log(error);
-                }),
-            { pending: "Đang trong quá trình xử lý ..." }
-        );
+    const handleMarkRead = async (id) => {
+        const fb = data.find(f => f.idFeedback === id);
+        if (fb?.readed) { toast.warning("Feedback này đã duyệt rồi"); return; }
+        try {
+            await markFeedbackAsRead(id);
+            toast.success("Đã đánh dấu đã đọc");
+            setIsDataChanged(p => !p);
+        } catch { toast.error("Lỗi khi duyệt"); }
     };
 
-    // [SỬA] Bước 3: Hàm "Xóa" dùng hàm từ FeedbackApi
-    const handleDelete = (idFeedback) => {
-        if (!window.confirm("Bạn có chắc muốn xóa feedback này?")) {
-            return;
-        }
-
-        toast.promise(
-            deleteFeedback(idFeedback)
-                .then((success) => {
-                    if (success) {
-                        toast.success("Xóa thành công");
-                        setIsDataChanged(!isDataChanged); // Tải lại bảng
-                    } else {
-                        toast.error("Lỗi khi xóa");
-                    }
-                })
-                .catch((error) => {
-                    toast.error("Lỗi khi xóa");
-                    console.log(error);
-                }),
-            { pending: "Đang trong quá trình xử lý ..." }
-        );
+    const handleDelete = async (id) => {
+        try {
+            await deleteFeedback(id);
+            toast.success("Xóa thành công");
+            setIsDataChanged(p => !p);
+        } catch { toast.error("Lỗi khi xóa"); }
     };
 
-    // Lọc dữ liệu theo từ khóa tìm kiếm
     const filtered = useMemo(() => {
         if (!searchKeyword.trim()) return data;
         const k = searchKeyword.toLowerCase();
@@ -110,247 +137,99 @@ export const FeedbackTable = ({
 
     if (loading) {
         return (
-            <Box
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: "400px",
-                }}
-            >
-                <CircularProgress />
-            </Box>
+            <div style={{ textAlign: 'center', padding: '48px', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif" }}>
+                Đang tải...
+            </div>
         );
     }
 
     return (
         <>
-            <div className="card">
-                <div className="table-responsive">
-                    <table className="table align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th style={{ width: "50px" }}>ID</th>
-                                <th>TIÊU ĐỀ</th>
-                                <th>NGƯỜI DÙNG</th>
-                                <th>NHẬN XÉT</th>
-                                <th style={{ width: "120px" }}>NGÀY TẠO</th>
-                                <th style={{ width: "80px" }}>TRẠNG THÁI</th>
-                                <th style={{ width: "120px" }}>HÀNH ĐỘNG</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filtered.length === 0 && (
-                                <tr>
-                                    <td colSpan={7} className="text-center py-4">
-                                        <Typography variant="body2" style={{ color: "#999" }}>
-                                            Không có feedback nào
-                                        </Typography>
-                                    </td>
-                                </tr>
-                            )}
-                            {filtered.map((feedback) => (
-                                <tr key={feedback.idFeedback} style={{
-                                    backgroundColor: feedback.readed ? "transparent" : "#f8f9fa",
-                                    opacity: feedback.readed ? 0.7 : 1,
-                                }}>
-                                    <td>
-                                        <strong>{feedback.idFeedback}</strong>
-                                    </td>
-                                    <td>
-                                        <Typography variant="body2" style={{ fontWeight: 500, maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                            {feedback.title}
-                                        </Typography>
-                                    </td>
-                                    <td>
-                                        <Typography variant="body2">
-                                            {feedback.username || "N/A"}
-                                        </Typography>
-                                    </td>
-                                    <td>
-                                        <Typography variant="body2" style={{ maxWidth: "250px", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                            {feedback.comment}
-                                        </Typography>
-                                    </td>
-                                    <td>
-                                        <Typography variant="caption" style={{ color: "#666" }}>
-                                            {feedback.dateCreated ? new Date(feedback.dateCreated).toLocaleDateString('vi-VN') : "—"}
-                                        </Typography>
-                                    </td>
-                                    <td>
-                                        {feedback.readed ? (
-                                            <Chip
-                                                icon={<CheckIcon />}
-                                                label="Đã đọc"
-                                                size="small"
-                                                color="success"
-                                                variant="outlined"
-                                            />
-                                        ) : (
-                                            <Chip
-                                                label="Chưa đọc"
-                                                size="small"
-                                                color="warning"
-                                                variant="outlined"
-                                            />
+            <div style={S.wrap}>
+                <table style={S.table}>
+                    <thead style={S.thead}>
+                        <tr>
+                            <th style={{ ...S.th, width: '48px' }}>ID</th>
+                            <th style={S.th}>Tiêu đề</th>
+                            <th style={S.th}>Người dùng</th>
+                            <th style={S.th}>Nhận xét</th>
+                            <th style={{ ...S.th, width: '110px' }}>Ngày tạo</th>
+                            <th style={{ ...S.th, width: '110px' }}>Trạng thái</th>
+                            <th style={{ ...S.th, width: '160px' }}>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filtered.length === 0 && (
+                            <tr><td colSpan={7} style={{ ...S.td, textAlign: 'center', color: '#94A3B8', padding: '40px' }}>Không có feedback nào</td></tr>
+                        )}
+                        {filtered.map(fb => (
+                            <tr key={fb.idFeedback}
+                                onClick={(e) => {
+                                    // Prevent row click if clicking action buttons
+                                    if (e.target.tagName.toLowerCase() !== 'button') {
+                                        setSelectedFeedback(fb);
+                                    }
+                                }}
+                                onMouseEnter={() => setHoverRow(fb.idFeedback)}
+                                onMouseLeave={() => setHoverRow(null)}
+                                style={{
+                                    background: hoverRow === fb.idFeedback ? '#F8FAFC' : (fb.readed ? '#fff' : '#FAFCFF'),
+                                    transition: 'background 0.15s',
+                                    opacity: fb.readed ? 0.8 : 1,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <td style={{ ...S.td, color: '#94A3B8', fontSize: '12px', fontWeight: 600 }}>#{fb.idFeedback}</td>
+                                <td style={{ ...S.td, maxWidth: '180px' }}>
+                                    <div style={{ fontWeight: 600, color: '#1E293B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {!fb.readed && <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#2C7B8F', marginRight: '7px', verticalAlign: 'middle' }} />}
+                                        {fb.title}
+                                    </div>
+                                </td>
+                                <td style={{ ...S.td, color: '#64748B', fontSize: '13px' }}>{fb.username || '—'}</td>
+                                <td style={{ ...S.td, maxWidth: '220px' }}>
+                                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#64748B', fontSize: '13px' }}>
+                                        {fb.comment}
+                                    </div>
+                                </td>
+                                <td style={{ ...S.td, color: '#64748B', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                                    {fb.dateCreated ? new Date(fb.dateCreated).toLocaleDateString('vi-VN') : '—'}
+                                </td>
+                                <td style={S.td}>
+                                    <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: 600, background: fb.readed ? '#ECFDF5' : '#FEF9C3', color: fb.readed ? '#166534' : '#854D0E' }}>
+                                        {fb.readed ? 'Đã đọc' : 'Chưa đọc'}
+                                    </span>
+                                </td>
+                                <td style={S.td}>
+                                    <div style={{ display: 'flex', gap: '5px', flexWrap: 'nowrap' }}>
+                                        <button style={S.actionBtn('teal')} onClick={() => setSelectedFeedback(fb)}
+                                            onMouseEnter={e => { e.currentTarget.style.background = '#2C7B8F'; e.currentTarget.style.color = '#fff'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#2C7B8F'; }}
+                                            title="Xem chi tiết">◉ Xem</button>
+                                        {!fb.readed && (
+                                            <button style={S.actionBtn('green')} onClick={() => handleMarkRead(fb.idFeedback)}
+                                                onMouseEnter={e => { e.currentTarget.style.background = '#16A34A'; e.currentTarget.style.color = '#fff'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#16A34A'; }}
+                                                title="Đánh dấu đã đọc">✓</button>
                                         )}
-                                    </td>
-                                    <td>
-                                        <div style={{ display: "flex", gap: "4px" }}>
-                                            <Tooltip title="Xem chi tiết">
-                                                <IconButton
-                                                    size="small"
-                                                    color="primary"
-                                                    onClick={() => setSelectedFeedback(feedback)}
-                                                >
-                                                    <VisibilityOutlined fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                            {!feedback.readed && (
-                                                <Tooltip title="Đánh dấu đã đọc">
-                                                    <IconButton
-                                                        size="small"
-                                                        color="success"
-                                                        onClick={() => handleChangeIsReaded(feedback.idFeedback)}
-                                                    >
-                                                        <CheckIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            )}
-                                            <Tooltip title="Xóa">
-                                                <IconButton
-                                                    size="small"
-                                                    color="error"
-                                                    onClick={() => handleDelete(feedback.idFeedback)}
-                                                >
-                                                    <DeleteIcon fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                        <button style={S.actionBtn('red')} onClick={() => handleDelete(fb.idFeedback)}
+                                            onMouseEnter={e => { e.currentTarget.style.background = '#EF4444'; e.currentTarget.style.color = '#fff'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#EF4444'; }}
+                                            title="Xóa">⊗</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
 
-            {/* Modal xem chi tiết feedback */}
-            {selectedFeedback && (
-                <div className="modal d-block" style={{ background: "rgba(0,0,0,.5)" }}>
-                    <div className="modal-dialog modal-lg">
-                        <div className="modal-content">
-                            {/* Header */}
-                            <div className="modal-header" style={{
-                                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                                color: "white",
-                                borderBottom: "none"
-                            }}>
-                                <h5 className="modal-title" style={{ margin: 0, fontWeight: 600 }}>
-                                    Chi tiết Feedback
-                                </h5>
-                                <button
-                                    type="button"
-                                    className="btn-close btn-close-white"
-                                    onClick={() => setSelectedFeedback(null)}
-                                ></button>
-                            </div>
-
-                            {/* Body */}
-                            <div className="modal-body" style={{ maxHeight: "70vh", overflowY: "auto" }}>
-                                <div style={{ marginBottom: "20px" }}>
-                                    <Typography variant="body2" style={{ color: "#666", marginBottom: "4px" }}>
-                                        Tiêu đề
-                                    </Typography>
-                                    <Typography variant="h6" style={{ fontWeight: 600, marginBottom: "16px" }}>
-                                        {selectedFeedback.title}
-                                    </Typography>
-                                </div>
-
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
-                                    <div>
-                                        <Typography variant="body2" style={{ color: "#666", marginBottom: "4px" }}>
-                                            Người dùng
-                                        </Typography>
-                                        <Typography variant="body1" style={{ fontWeight: 500 }}>
-                                            {selectedFeedback.username || "N/A"}
-                                        </Typography>
-                                    </div>
-                                    <div>
-                                        <Typography variant="body2" style={{ color: "#666", marginBottom: "4px" }}>
-                                            Ngày tạo
-                                        </Typography>
-                                        <Typography variant="body1" style={{ fontWeight: 500 }}>
-                                            {selectedFeedback.dateCreated ? new Date(selectedFeedback.dateCreated).toLocaleString('vi-VN') : "—"}
-                                        </Typography>
-                                    </div>
-                                </div>
-
-                                <div style={{ marginBottom: "20px" }}>
-                                    <Typography variant="body2" style={{ color: "#666", marginBottom: "8px" }}>
-                                        Nhận xét
-                                    </Typography>
-                                    <div style={{
-                                        padding: "12px",
-                                        backgroundColor: "#f8f9fa",
-                                        borderRadius: "6px",
-                                        border: "1px solid #dee2e6",
-                                        minHeight: "100px"
-                                    }}>
-                                        <Typography variant="body2" style={{ whiteSpace: "pre-wrap", lineHeight: "1.6" }}>
-                                            {selectedFeedback.comment}
-                                        </Typography>
-                                    </div>
-                                </div>
-
-                                <div style={{
-                                    padding: "12px",
-                                    backgroundColor: selectedFeedback.readed ? "#d4edda" : "#fff3cd",
-                                    borderRadius: "6px",
-                                    border: `1px solid ${selectedFeedback.readed ? "#c3e6cb" : "#ffeaa7"}`,
-                                }}>
-                                    <Typography variant="body2" style={{ fontWeight: 500 }}>
-                                        {selectedFeedback.readed ? "✓ Đã duyệt" : "⚠ Chưa duyệt"}
-                                    </Typography>
-                                </div>
-                            </div>
-
-                            {/* Footer */}
-                            <div className="modal-footer" style={{ borderTop: "1px solid #dee2e6" }}>
-                                {!selectedFeedback.readed && (
-                                    <button
-                                        className="btn btn-success"
-                                        onClick={() => {
-                                            handleChangeIsReaded(selectedFeedback.idFeedback);
-                                            setSelectedFeedback(null);
-                                        }}
-                                    >
-                                        <CheckIcon style={{ marginRight: "6px", fontSize: "18px" }} />
-                                        Đánh dấu đã đọc
-                                    </button>
-                                )}
-                                <button
-                                    className="btn btn-danger"
-                                    onClick={() => {
-                                        handleDelete(selectedFeedback.idFeedback);
-                                        setSelectedFeedback(null);
-                                    }}
-                                >
-                                    <DeleteIcon style={{ marginRight: "6px", fontSize: "18px" }} />
-                                    Xóa
-                                </button>
-                                <button
-                                    className="btn btn-secondary"
-                                    onClick={() => setSelectedFeedback(null)}
-                                >
-                                    Đóng
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <DetailModal
+                feedback={selectedFeedback}
+                onClose={() => setSelectedFeedback(null)}
+                onMarkRead={handleMarkRead}
+                onDelete={handleDelete}
+            />
         </>
     );
 };
-

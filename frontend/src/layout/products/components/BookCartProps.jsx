@@ -19,6 +19,7 @@ const BookCartProps = (props) => {
 
 	// State để quản lý số lượng sản phẩm
 	const [quantity, setQuantity] = useState(props.cartItem.quantity || 1);
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 	// Lấy ra hình ảnh của sách
 	const [images, setImages] = useState(null);
@@ -144,13 +145,8 @@ const BookCartProps = (props) => {
 			});
 	};
 
-	// Xử lý xoá sản phẩm
-	const handleConfirm = () => {
-
-		const isConfirmed = window.confirm("Bạn có chắc chắn muốn xoá sản phẩm này không?");
-
-
-		if (isToken() && isConfirmed) {
+	const executeDelete = () => {
+		if (isToken()) {
 			const token = localStorage.getItem("token");
 			fetch(endpointBE + `/cart-items/${props.cartItem.idCart}`, {
 				method: "DELETE",
@@ -160,19 +156,20 @@ const BookCartProps = (props) => {
 				},
 			}).then(() => {
 				toast.success("Xoá sản phẩm thành công");
+				window.dispatchEvent(new Event('cart_updated'));
 				props.onDeleteSuccess(); // ← Gọi callback
-
 			}).catch(
 				(err) => {
 					console.log(err);
 					toast.error("Xóa sản phẩm thất bại");
 				}
-			);
+			).finally(() => setShowDeleteConfirm(false));
 		}
-		else{
-			toast.info("Đã hủy xóa sản phẩm");
-		}
-}
+	};
+
+	const handleConfirm = () => {
+		setShowDeleteConfirm(true);
+	}
 
 if (loading) {
 	return (
@@ -264,6 +261,31 @@ return (
 					</Tooltip>
 				</div>
 				<hr className='my-3' />
+
+				{showDeleteConfirm && (
+					<div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+						<div style={{ background: '#fff', borderRadius: '16px', padding: '32px', width: '90%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+							<h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '20px', fontWeight: 700, color: '#1E293B', marginTop: 0, marginBottom: '12px' }}>Xác nhận xóa</h3>
+							<p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '15px', color: '#475569', marginBottom: '24px', lineHeight: 1.5 }}>
+								Bạn có chắc chắn muốn bỏ quyển sách <strong>{props.cartItem.book?.nameBook}</strong> ra khỏi giỏ hàng không?
+							</p>
+							<div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+								<button
+									onClick={() => setShowDeleteConfirm(false)}
+									style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #E2E8F0', background: '#fff', color: '#475569', fontFamily: "'DM Sans', sans-serif", fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+								>
+									Hủy bỏ
+								</button>
+								<button
+									onClick={executeDelete}
+									style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#EF4444', color: '#fff', fontFamily: "'DM Sans', sans-serif", fontSize: '14px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 2px 4px rgba(239,68,68,0.2)' }}
+								>
+									Đồng ý xóa
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
 			</>
 		)}
 	</>

@@ -21,15 +21,21 @@ import { getAllImageByBook } from "../../api/ImageApi";
 import BookModel from "../../model/BookModel";
 import ImageModel from "../../model/ImageModel";
 
-// Tô màu badge theo trạng thái
+// Status pill badge
 const StatusBadge = ({ status }) => {
-	const cls =
+	const cfg =
 		status === "Thành công"
-			? "badge bg-success-subtle text-success border border-success"
+			? { bg: '#ECFDF5', color: '#166534' }
 			: status === "Bị hủy"
-				? "badge bg-danger-subtle text-danger border border-danger"
-				: "badge bg-info-subtle text-info border border-info";
-	return <span className={cls}>{status || "Đang xử lý"}</span>;
+				? { bg: '#FEF2F2', color: '#991B1B' }
+				: status === "Đang giao hàng"
+					? { bg: '#FEF9C3', color: '#854D0E' }
+					: { bg: '#EFF6FF', color: '#1D4ED8' };
+	return (
+		<span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: 600, background: cfg.bg, color: cfg.color }}>
+			{status || 'Đang xử lý'}
+		</span>
+	);
 };
 
 const getStatusColor = (status) => {
@@ -670,98 +676,76 @@ const OrderManagement = () => {
 		load(page.number, page.size);
 	};
 
+	const [hoverRow, setHoverRow] = useState(null);
+
 	return (
-		<div className="container my-4">
-			<div className="d-flex align-items-center justify-content-between mb-3">
-				<h3>Quản lý đơn hàng</h3>
-				<div className="d-flex gap-2">
-					<input
-						className="form-control"
-						placeholder="Tìm theo tên khách hàng..."
-						value={keyword}
-						onChange={handleSearchChange}
-						style={{ width: 300 }}
-					/>
-				</div>
+		<div style={{ padding: '4px' }}>
+			{/* Header */}
+			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+				<h3 style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: '22px', color: '#1E293B', margin: 0 }}>
+					Quản lý đơn hàng
+				</h3>
+				<input
+					style={{ padding: '9px 12px', border: '1.5px solid #E2E8F0', borderRadius: '8px', fontFamily: "'DM Sans', sans-serif", fontSize: '14px', outline: 'none', width: '280px', color: '#1E293B' }}
+					placeholder="Tìm theo tên khách hàng..."
+					value={keyword}
+					onChange={handleSearchChange}
+				/>
 			</div>
 
-			<div className="card">
-				<div className="table-responsive">
-					<table className="table align-middle">
-						<thead>
-							<tr>
-								<th>ID</th>
-								<th>Tên khách hàng</th>
-								<th>Ngày tạo</th>
-								<th>Tổng tiền</th>
-								<th>Trạng thái</th>
-								<th>Thanh toán</th>
-								<th>Hành động</th>
-							</tr>
-						</thead>
-						<tbody>
-							{loading && (
-								<tr>
-									<td colSpan={7} className="text-center">
-										Đang tải...
-									</td>
-								</tr>
-							)}
-							{!loading && filtered.length === 0 && (
-								<tr>
-									<td colSpan={7} className="text-center">
-										Không có dữ liệu
-									</td>
-								</tr>
-							)}
-							{!loading &&
-								filtered.map((o) => (
-									<tr key={o.idOrder}>
-										<td>{o.idOrder}</td>
-										<td>{o.fullName}</td>
-										<td>{String(o.dateCreated)}</td>
-										<td>{o.totalPrice?.toLocaleString()} đ</td>
-										<td>
-											<StatusBadge status={o.status} />
-										</td>
-										<td>{o.namePayment || "—"}</td>
-										<td>
-											<button
-												className="btn btn-sm btn-outline-primary me-2"
-												onClick={() => onView(o.idOrder)}
-											>
-												<i className="far fa-eye"></i>
-											</button>
-										</td>
-									</tr>
-								))}
-						</tbody>
-					</table>
-				</div>
-				<div className="d-flex align-items-center justify-content-between p-2">
-					<div className="text-muted">
-						{isSearching ? (
-							`Tìm thấy ${filtered.length} kết quả`
-						) : (
-							`Trang ${page.number + 1} / ${Math.max(1, page.totalPages)}`
+			<div style={{ background: '#fff', borderRadius: '12px', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', overflow: 'hidden', border: '1px solid #F1F5F9' }}>
+				<table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: "'DM Sans', sans-serif", fontSize: '13.5px' }}>
+					<thead style={{ background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+						<tr>
+							{['ID', 'Tên khách hàng', 'Ngày tạo', 'Tổng tiền', 'Trạng thái', 'Thanh toán', 'Hành động'].map(h => (
+								<th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, fontSize: '11px', letterSpacing: '0.7px', textTransform: 'uppercase', color: '#94A3B8', whiteSpace: 'nowrap' }}>{h}</th>
+							))}
+						</tr>
+					</thead>
+					<tbody>
+						{loading && (
+							<tr><td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif" }}>Đang tải...</td></tr>
 						)}
-					</div>
+						{!loading && filtered.length === 0 && (
+							<tr><td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>Không có dữ liệu</td></tr>
+						)}
+						{!loading && filtered.map(o => (
+							<tr key={o.idOrder}
+								onMouseEnter={() => setHoverRow(o.idOrder)}
+								onMouseLeave={() => setHoverRow(null)}
+								style={{ background: hoverRow === o.idOrder ? '#F8FAFC' : '#fff', transition: 'background 0.15s' }}
+							>
+								<td style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', color: '#94A3B8', fontSize: '12px', fontWeight: 600 }}>#{o.idOrder}</td>
+								<td style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', color: '#1E293B', fontWeight: 500 }}>{o.fullName}</td>
+								<td style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', color: '#64748B', fontSize: '13px', whiteSpace: 'nowrap' }}>{String(o.dateCreated)}</td>
+								<td style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', fontWeight: 700, color: '#2C7B8F', whiteSpace: 'nowrap' }}>{o.totalPrice?.toLocaleString()}đ</td>
+								<td style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9' }}><StatusBadge status={o.status} /></td>
+								<td style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', color: '#64748B', fontSize: '13px' }}>{o.namePayment || '—'}</td>
+								<td style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9' }}>
+									<button onClick={() => onView(o.idOrder)}
+										style={{ padding: '5px 12px', borderRadius: '8px', border: '1.5px solid #2C7B8F', background: 'transparent', color: '#2C7B8F', fontSize: '13px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 600, transition: 'all 0.18s ease', lineHeight: 1 }}
+										onMouseEnter={e => { e.currentTarget.style.background = '#2C7B8F'; e.currentTarget.style.color = '#fff'; }}
+										onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#2C7B8F'; }}
+									>◉ Xem</button>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+
+				{/* Pagination */}
+				<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderTop: '1px solid #F1F5F9', background: '#FAFAFA' }}>
+					<span style={{ fontSize: '13px', color: '#64748B', fontFamily: "'DM Sans', sans-serif" }}>
+						{isSearching ? `Tìm thấy ${filtered.length} kết quả` : `Trang ${page.number + 1} / ${Math.max(1, page.totalPages)}`}
+					</span>
 					{!isSearching && (
-						<div className="btn-group">
-							<button
-								className="btn btn-outline-secondary"
-								disabled={page.number <= 0}
-								onClick={() => load(page.number - 1, page.size)}
-							>
-								«
-							</button>
-							<button
-								className="btn btn-outline-secondary"
-								disabled={page.number >= page.totalPages - 1}
-								onClick={() => load(page.number + 1, page.size)}
-							>
-								»
-							</button>
+						<div style={{ display: 'flex', gap: '8px' }}>
+							<button disabled={page.number <= 0} onClick={() => load(page.number - 1, page.size)}
+								style={{ padding: '5px 14px', borderRadius: '8px', border: '1.5px solid #E2E8F0', background: page.number <= 0 ? '#F8FAFC' : '#fff', color: page.number <= 0 ? '#CBD5E1' : '#475569', fontSize: '12px', fontWeight: 600, cursor: page.number <= 0 ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+							>← Trước</button>
+							<button disabled={page.number >= page.totalPages - 1} onClick={() => load(page.number + 1, page.size)}
+								style={{ padding: '5px 14px', borderRadius: '8px', border: '1.5px solid #E2E8F0', background: page.number >= page.totalPages - 1 ? '#F8FAFC' : '#fff', color: page.number >= page.totalPages - 1 ? '#CBD5E1' : '#475569', fontSize: '12px', fontWeight: 600, cursor: page.number >= page.totalPages - 1 ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+							>Sau →</button>
 						</div>
 					)}
 				</div>

@@ -85,7 +85,7 @@ const UserFormModal = React.memo(({
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
-                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        background: "linear-gradient(135deg, #2C7B8F 0%, #1A5E70 100%)",
                         color: "white",
                         borderRadius: "12px 12px 0 0",
                     }}
@@ -356,7 +356,7 @@ const UserFormModal = React.memo(({
                                 padding: "10px 24px",
                                 border: "none",
                                 borderRadius: "6px",
-                                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                background: "linear-gradient(135deg, #2C7B8F 0%, #1A5E70 100%)",
                                 color: "white",
                                 cursor: isSubmitting ? "not-allowed" : "pointer",
                                 fontWeight: 500,
@@ -806,20 +806,52 @@ const UserManagement = () => {
                                         </span>
                                     </td>
                                     <td>
-                                        <div className='d-flex gap-1'>
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                             <button
-                                                className='btn btn-sm btn-outline-primary'
                                                 onClick={() => handleOpenEditForm(u)}
                                                 title="Chỉnh sửa"
+                                                style={{
+                                                    padding: '6px 14px', borderRadius: '8px',
+                                                    border: '1.5px solid #2C7B8F', background: 'transparent',
+                                                    color: '#2C7B8F', cursor: 'pointer',
+                                                    transition: 'all 0.18s ease', lineHeight: 1,
+                                                }}
+                                                onMouseEnter={e => { e.currentTarget.style.background = '#2C7B8F'; e.currentTarget.style.color = '#fff'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#2C7B8F'; }}
                                             >
-                                                ✏️
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: "'DM Sans', sans-serif", fontSize: '13px', fontWeight: 600 }}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                    Sửa
+                                                </div>
                                             </button>
                                             <button
-                                                className={`btn btn-sm ${u.enabled ? 'btn-outline-danger' : 'btn-outline-success'}`}
                                                 onClick={() => onToggleStatus(u)}
-                                                title={u.enabled ? 'Khóa' : 'Mở khóa'}
+                                                title={u.enabled ? 'Khóa tài khoản' : 'Mở khóa'}
+                                                style={{
+                                                    padding: '6px 14px', borderRadius: '8px',
+                                                    border: `1.5px solid ${u.enabled ? '#EF4444' : '#16A34A'}`,
+                                                    background: 'transparent',
+                                                    color: u.enabled ? '#EF4444' : '#16A34A',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.18s ease', lineHeight: 1,
+                                                }}
+                                                onMouseEnter={e => {
+                                                    const c = u.enabled ? '#EF4444' : '#16A34A';
+                                                    e.currentTarget.style.background = c; e.currentTarget.style.color = '#fff';
+                                                }}
+                                                onMouseLeave={e => {
+                                                    e.currentTarget.style.background = 'transparent';
+                                                    e.currentTarget.style.color = u.enabled ? '#EF4444' : '#16A34A';
+                                                }}
                                             >
-                                                {u.enabled ? '🔒' : '🔓'}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: "'DM Sans', sans-serif", fontSize: '13px', fontWeight: 600 }}>
+                                                    {u.enabled ? (
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                                    ) : (
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                    )}
+                                                    {u.enabled ? 'Khóa' : 'Mở'}
+                                                </div>
                                             </button>
                                         </div>
                                     </td>

@@ -1,235 +1,217 @@
 import React, { useEffect, useState } from "react";
-import BookModel from "../../../model/BookModel";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
-import { IconButton, Tooltip } from "@mui/material";
+import { useNavigate, Link } from "react-router-dom";
 import { getAllImageByBook } from "../../../api/ImageApi";
-import ImageModel from "../../../model/ImageModel";
 import { addFavoriteBook, removeFavoriteBook, getFavoriteBooksByUser } from "../../../api/FavouriteBookApi";
 import { getIdUserByToken, isToken } from "../../utils/JwtService";
 import { endpointBE } from "../../utils/Constant";
 import { toast } from "react-toastify";
 import { getCartAllByIdUser, updateQuantityCartItem } from "../../../api/CartApi";
+import { Tooltip } from "@mui/material";
 
 const BookProps = ({ book, onRemove, isFavoritePage = false }) => {
     const navigation = useNavigate();
     const [imageList, setImageList] = useState([]);
     const [isFavorite, setIsFavorite] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [imgLoaded, setImgLoaded] = useState(false);
 
     useEffect(() => {
-        // Lấy hình ảnh sách
         getAllImageByBook(book.idBook)
-            .then((response) => {
-                setImageList(response);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-
-        // Kiểm tra sách có trong danh sách yêu thích không
-        if (isToken()) {
-            checkIfFavorite();
-        }
+            .then(setImageList)
+            .catch(console.log);
+        if (isToken()) checkIfFavorite();
     }, [book.idBook]);
 
-    // Kiểm tra sách có trong danh sách yêu thích không
     const checkIfFavorite = async () => {
         try {
             const idUser = getIdUserByToken();
             if (!idUser || typeof idUser !== 'number') return;
-
             const favoriteIds = await getFavoriteBooksByUser(idUser);
             setIsFavorite(favoriteIds.includes(book.idBook));
-        } catch (error) {
-            console.error("Lỗi khi kiểm tra yêu thích:", error);
-        }
+        } catch (error) { console.error(error); }
     };
 
-    // Xử lý thêm sản phẩm vào giỏ hàng
-    const handleAddProduct = async (book) => {
-
-        //Xử lý khi đã có sách sẵn trong giỏ hàng
+    const handleAddProduct = async () => {
         const cartList = await getCartAllByIdUser();
-        //Xử dụng find để tìm sách trong giỏ hàng
-        const existing = cartList.find(
-            (cartItem) => cartItem.book?.idBook === book.idBook
-        );
-
+        const existing = cartList.find(c => c.book?.idBook === book.idBook);
         if (existing) {
             existing.quantity = (existing.quantity || 1) + 1;
-            try {
-                await updateQuantityCartItem(existing);
-            } catch (error) {
-                console.error(error);
-            }
+            try { await updateQuantityCartItem(existing); } catch (e) { console.error(e); }
             return;
         }
-
-
-        const endPoint = endpointBE + "/cart-item/add-item";
-
         const token = localStorage.getItem("token");
         const idUser = Number(getIdUserByToken());
-
         try {
-            const response = await toast.promise(
-                fetch(endPoint, {
+            const res = await toast.promise(
+                fetch(endpointBE + "/cart-item/add-item", {
                     method: "POST",
-                    headers: {
-                        "Content-type": "application/json",
-                        "Authorization": "Bearer " + token,
-                    },
-                    body: JSON.stringify({
-                        idBook: book.idBook,
-                        quantity: 1,
-                        idUser: idUser,
-                    }),
+                    headers: { "Content-type": "application/json", "Authorization": "Bearer " + token },
+                    body: JSON.stringify({ idBook: book.idBook, quantity: 1, idUser }),
                 }),
-                { pending: "Đang trong quá trình xử lý ..." }
+                { pending: "Đang xử lý ..." }
             );
-            if (response.ok) {
-                toast.success("Đã thêm sản phẩm vào giỏ hàng");
+            if (res.ok) {
+                toast.success("Đã thêm vào giỏ hàng");
+                window.dispatchEvent(new Event('cart_updated'));
             } else {
                 toast.error("Đã xảy ra lỗi");
             }
-        } catch (error) {
-            toast.error("Đã xảy ra lỗi");
-        }
-    }
+        } catch { toast.error("Đã xảy ra lỗi"); }
+    };
 
-
-    // Xử lý thêm/xóa yêu thích
     const handleToggleFavorite = async () => {
-        // Kiểm tra đăng nhập
-        if (!isToken()) {
-            alert("Vui lòng đăng nhập để sử dụng tính năng này");
-            navigation("/login");
-            return;
-        }
-
+        if (!isToken()) { navigation("/login"); return; }
         const idUser = Number(getIdUserByToken());
-        if (!idUser || typeof idUser !== 'number') return;
-
+        if (!idUser) return;
         setLoading(true);
-
         if (isFavorite) {
-            // Xóa khỏi danh sách yêu thích
             await removeFavoriteBook(idUser, book.idBook);
             setIsFavorite(false);
-            toast.error("Đã xóa khỏi danh sách yêu thích");
-
-            // Nếu đang ở trang yêu thích, refresh lại danh sách
-            if (isFavoritePage && onRemove) {
-                onRemove();
-            }
+            if (isFavoritePage && onRemove) onRemove();
         } else {
-            // Thêm vào danh sách yêu thích
             await addFavoriteBook(idUser, book.idBook);
             setIsFavorite(true);
-            toast.success("Đã thêm vào danh sách yêu thích");
         }
-
         setLoading(false);
-
     };
+
+    const outOfStock = book.quantity === 0;
 
     return (
         <div className='col-md-6 col-lg-3 mt-3'>
-            <div className='card position-relative'>
+            <div className='ms-book-card' style={{
+                borderRadius: '12px',
+                background: '#fff',
+                border: '1px solid #F1F5F9',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+                transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1), box-shadow 0.28s cubic-bezier(0.4,0,0.2,1)',
+                display: 'flex', flexDirection: 'column',
+                height: '100%', position: 'relative',
+                overflow: 'hidden',
+                animation: 'slideUp 0.5s ease-out both',
+            }}
+                onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-5px)';
+                    e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.09)';
+                }}
+                onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)';
+                }}
+            >
+                {/* Badge */}
                 {book.discountPercent !== 0 && (
-                    <h4
-                        className='my-0 d-inline-block position-absolute end-0'
-                        style={{ top: "15px" }}
-                    >
-                        {book.quantity === 0 ? (
-                            <span className='badge bg-danger'>Hết hàng</span>
-                        ) : (
-                            <span className='badge bg-primary'>
-                                {book.discountPercent}%
-                            </span>
-                        )}
-                    </h4>
+                    <div style={{
+                        position: 'absolute', top: '10px', right: '10px', zIndex: 2,
+                        background: outOfStock ? '#DC2626' : '#2C7B8F',
+                        color: '#fff', borderRadius: '20px', padding: '2px 9px',
+                        fontSize: '11px', fontWeight: 600, fontFamily: "'DM Sans', sans-serif",
+                    }}>
+                        {outOfStock ? 'Hết hàng' : `-${book.discountPercent}%`}
+                    </div>
                 )}
-                <Link to={`/book/${book.idBook}`}>
+
+                {/* Cover Image */}
+                <Link to={`/book/${book.idBook}`} style={{ display: 'block', overflow: 'hidden', background: '#F8FAFC' }}>
                     <img
-                        src={imageList[0]?.urlImage ? imageList[0].urlImage : "/images/books/hinh_nen_sach.jpg"}
-                        className='card-img-top mt-3'
+                        src={imageList[0]?.urlImage ?? "/images/books/hinh_nen_sach.jpg"}
                         alt={book.nameBook}
-                        style={{ height: "300px" }}
+                        onLoad={() => setImgLoaded(true)}
+                        style={{
+                            width: '100%', height: '250px', objectFit: 'cover',
+                            display: 'block',
+                            transition: 'transform 0.4s ease',
+                            opacity: imgLoaded ? 1 : 0.8,
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                     />
                 </Link>
-                <div className='card-body'>
-                    <Link
-                        to={`/book/${book.idBook}`}
-                        style={{ textDecoration: "none" }}
-                    >
-                        <h5 className='card-title'>
-                            <Tooltip title={book.nameBook} arrow>
-                                <span
-                                    style={{
-                                        display: 'block',
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                    }}
-                                >
-                                    {book.nameBook}
-                                </span>
-                            </Tooltip>
-                        </h5>
+
+                {/* Body */}
+                <div style={{ padding: '14px 16px', flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <Link to={`/book/${book.idBook}`} style={{ textDecoration: 'none' }}>
+                        <Tooltip title={book.nameBook} arrow>
+                            <h5 style={{
+                                fontFamily: "'DM Sans', sans-serif",
+                                fontSize: '14.5px', fontWeight: 400, color: '#111827',
+                                margin: 0, display: '-webkit-box',
+                                WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden', lineHeight: 1.45,
+                                transition: 'color 0.2s',
+                            }}
+                                onMouseEnter={e => e.currentTarget.style.color = '#2C7B8F'}
+                                onMouseLeave={e => e.currentTarget.style.color = '#111827'}
+                            >
+                                {book.nameBook}
+                            </h5>
+                        </Tooltip>
                     </Link>
-                    <div className='price mb-3 d-flex align-items-center justify-content-between'>
-                        <div className='d-flex align-items-center'>
-                            <span className='discounted-price text-danger'>
-                                <strong style={{ fontSize: "22px" }}>
-                                    {book.sellPrice?.toLocaleString()}đ
-                                </strong>
+
+                    {book.author && (
+                        <p style={{ margin: 0, fontSize: '12px', color: '#9CA3AF', fontFamily: "'DM Sans', sans-serif" }}>
+                            {book.author}
+                        </p>
+                    )}
+
+                    {/* Price */}
+                    <div style={{ marginTop: 'auto', paddingTop: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '17px', fontWeight: 700, color: '#2C7B8F' }}>
+                                {book.sellPrice?.toLocaleString()}đ
                             </span>
                             {book.discountPercent !== 0 && (
-                                <span className='original-price ms-3 small fw-bolder'>
-                                    <del>{book.listPrice?.toLocaleString()}đ</del>
+                                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '12px', color: '#D1D5DB', textDecoration: 'line-through' }}>
+                                    {book.listPrice?.toLocaleString()}đ
                                 </span>
                             )}
                         </div>
-                        <span
-                            className='ms-2'
-                            style={{ fontSize: "12px", color: "#aaa" }}
-                        >
+                        <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#D1D5DB', fontFamily: "'DM Sans', sans-serif" }}>
                             Đã bán {book.soldQuantity}
-                        </span>
+                        </p>
                     </div>
 
-                    <div className='row mt-2' role='group'>
-                        <div className='col-6'>
-                            <Tooltip title={isFavorite ? "Bỏ yêu thích" : "Yêu thích"}>
-                                <button
-                                    className={`btn ${isFavorite ? 'btn-danger' : 'btn-outline-secondary'}`}
-                                    onClick={handleToggleFavorite}
-                                    disabled={loading}
-                                    style={{ width: '100%' }}
-                                >
-                                    {isFavorite ? '❤️' : '🤍'}
-                                </button>
-                            </Tooltip>
-                        </div>
-                        <div className='col-6'>
-                            {book.quantity !== 0 && (
-                                <Tooltip title='Thêm vào giỏ hàng'>
-                                    <button
-                                        className='btn btn-primary btn-block'
-                                        onClick={isToken() ? () => handleAddProduct(book) : () => navigation("/login")}
-
-                                    >
-                                        <i className='fas fa-shopping-cart'></i>
-                                    </button>
-                                </Tooltip>
-                            )}
-                        </div>
+                    {/* Actions */}
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                        <button
+                            onClick={handleToggleFavorite}
+                            disabled={loading}
+                            title={isFavorite ? "Bỏ yêu thích" : "Yêu thích"}
+                            style={{
+                                flexShrink: 0, width: '36px', height: '36px',
+                                border: `1.5px solid ${isFavorite ? '#FCA5A5' : '#E5E7EB'}`,
+                                borderRadius: '8px',
+                                background: isFavorite ? '#FEF2F2' : 'transparent',
+                                color: isFavorite ? '#DC2626' : '#9CA3AF',
+                                cursor: 'pointer', fontSize: '15px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                transition: 'all 0.2s ease', fontFamily: 'inherit',
+                            }}
+                        >
+                            {isFavorite ? '♥' : '♡'}
+                        </button>
+                        {!outOfStock && (
+                            <button
+                                onClick={isToken() ? handleAddProduct : () => navigation("/login")}
+                                title="Thêm vào giỏ hàng"
+                                style={{
+                                    flex: 1, padding: '8px 12px', height: '36px',
+                                    border: '1.5px solid #2C7B8F', borderRadius: '8px',
+                                    background: 'transparent', color: '#2C7B8F',
+                                    cursor: 'pointer', fontSize: '12.5px', fontWeight: 600,
+                                    transition: 'all 0.22s ease', fontFamily: "'DM Sans', sans-serif",
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = '#2C7B8F'; e.currentTarget.style.color = '#fff'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#2C7B8F'; }}
+                            >
+                                + Giỏ hàng
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
         </div>
     );
 };
+
 export default BookProps;

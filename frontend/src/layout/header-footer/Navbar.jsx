@@ -1,181 +1,324 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import { Avatar, Button } from "@mui/material";
+import { Avatar } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
-	getAvatarByToken,
-	getLastNameByToken,
-	getRoleByToken,
-	isToken,
-	logout,
-
+    getAvatarByToken,
+    getLastNameByToken,
+    getRoleByToken,
+    isToken,
+    logout,
 } from "../utils/JwtService";
+import { getCartAllByIdUser } from "../../api/CartApi";
 
-const Navbar = (props) => {
-	const navigate = useNavigate();
-    const location = useLocation();
+const Navbar = () => {
+    const navigate = useNavigate();
+    const [scrolled, setScrolled] = useState(false);
+    const [cartCount, setCartCount] = useState(0);
 
+    useEffect(() => {
+        const fetchCartCount = async () => {
+            if (isToken()) {
+                try {
+                    const cartList = await getCartAllByIdUser();
+                    setCartCount(cartList?.length || 0);
+                } catch { } // ignore
+            } else {
+                setCartCount(0);
+            }
+        };
 
-return (
-		<nav
-			className='navbar navbar-expand-lg navbar-light bg-light sticky-top'
-			style={{ zIndex: 2 }}
-		>
-			{/* <!-- Container wrapper --> */}
-			<div className='container-fluid'>
-				{/* <!-- Toggle button --> */}
-				<button
-					className='navbar-toggler'
-					type='button'
-					data-mdb-toggle='collapse'
-					data-mdb-target='#navbarSupportedContent'
-					aria-controls='navbarSupportedContent'
-					aria-expanded='false'
-					aria-label='Toggle navigation'
-				>
-					<i className='fas fa-bars'></i>
-				</button>
-				{/* <!-- Collapsible wrapper --> */}
-				<div
-					className='collapse navbar-collapse'
-					id='navbarSupportedContent'
-				>
-					{/* <!-- Navbar brand --> */}
-					<Link className='navbar-brand mt-2 mt-lg-0' to='/'>
-						<img
-							src={"./../../../images/public/logo.png"}
-							width='50'
-							alt='MDB Logo'
-							loading='lazy'
-						/>
-					</Link>
-					{/* <!-- Left links --> */}
-					<ul className='navbar-nav me-auto mb-2 mb-lg-0'>
-						<li className='nav-item'>
-							<NavLink className='nav-link' to='/'>
-								Trang chủ
-							</NavLink>
-						</li>
-						<li className='nav-item'>
-							<NavLink className='nav-link' to='/about'>
-								Giới thiệu
-							</NavLink>
-						</li>
-						<li className='nav-item'>
-							<NavLink className='nav-link' to='/products'>
-								Kho sách
-							</NavLink>
-						</li>
+        fetchCartCount();
+        const handleCartUpdate = () => fetchCartCount();
+        
+        window.addEventListener('cart_updated', handleCartUpdate);
+        return () => window.removeEventListener('cart_updated', handleCartUpdate);
+    }, []);
 
-						<li className='nav-item'>
-							<Link className='nav-link' to={"/policy"}>
-								Chính sách
-							</Link>
-						</li>
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 10);
+        window.addEventListener('scroll', onScroll);
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
 
-						{isToken() && (
-							<li className="nav-item">
-								<NavLink className="nav-link" to="/feedback"> Feedback </NavLink>
-							</li>
-						)}
+    return (
+        <>
+            <style>{`
+                .ms-nav {
+                    position: sticky;
+                    top: 0;
+                    z-index: 1030;
+                    background: rgba(255, 255, 255, 0.94);
+                    backdrop-filter: blur(14px);
+                    -webkit-backdrop-filter: blur(14px);
+                    border-bottom: 1px solid ${scrolled ? '#E5E7EB' : 'transparent'};
+                    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+                    box-shadow: ${scrolled ? '0 2px 12px rgba(0,0,0,0.06)' : 'none'};
+                    padding: 0;
+                }
+                .ms-nav-inner {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 0 24px;
+                    height: 64px;
+                    display: flex;
+                    align-items: center;
+                    gap: 32px;
+                }
+                .ms-nav-brand {
+                    font-family: 'DM Sans', sans-serif !important;
+                    font-size: 20px;
+                    color: #111827 !important;
+                    text-decoration: none !important;
+                    letter-spacing: 0.3px;
+                    flex-shrink: 0;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .ms-nav-brand span.logo-symbol {
+                    color: #2C7B8F;
+                    font-size: 18px;
+                }
+                .ms-nav-links {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    flex: 1;
+                }
+                .ms-nav-link {
+                    font-family: 'DM Sans', sans-serif !important;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #6B7280 !important;
+                    text-decoration: none !important;
+                    padding: 6px 12px;
+                    border-radius: 8px;
+                    transition: all 0.2s ease;
+                    white-space: nowrap;
+                }
+                .ms-nav-link:hover { color: #111827 !important; background: #F3F4F6; }
+                .ms-nav-link.active { color: #2C7B8F !important; background: #EEF8FA; }
+                .ms-nav-right {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    margin-left: auto;
+                }
+                .ms-nav-icon-btn {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    background: transparent;
+                    border: none;
+                    cursor: pointer;
+                    color: #6B7280;
+                    font-size: 18px;
+                    transition: all 0.2s ease;
+                    text-decoration: none;
+                    position: relative;
+                }
+                .ms-nav-icon-btn:hover { background: #F3F4F6; color: #111827; }
+                .ms-cart-badge {
+                    position: absolute;
+                    top: -2px;
+                    right: -2px;
+                    background: #EF4444;
+                    color: #fff;
+                    font-size: 10px;
+                    font-weight: 700;
+                    padding: 2px 5px;
+                    border-radius: 10px;
+                    line-height: 1;
+                    border: 2px solid #fff;
+                    font-family: 'DM Sans', sans-serif;
+                }
+                .ms-avatar-wrap {
+                    position: relative;
+                }
+                .ms-avatar-trigger {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    cursor: pointer;
+                    padding: 4px 10px 4px 4px;
+                    border-radius: 24px;
+                    border: 1px solid #E5E7EB;
+                    background: #fff;
+                    transition: all 0.2s ease;
+                    font-family: 'DM Sans', sans-serif !important;
+                    font-size: 13px;
+                    color: #374151;
+                }
+                .ms-avatar-trigger:hover { border-color: #2C7B8F; box-shadow: 0 0 0 3px rgba(44,123,143,0.08); }
+                .ms-avatar-chevron {
+                    font-size: 10px;
+                    color: #9CA3AF;
+                    transition: transform 0.2s ease;
+                }
+                .ms-dropdown-menu {
+                    position: absolute;
+                    top: calc(100% + 10px);
+                    right: 0;
+                    background: #fff;
+                    border: 1px solid #E5E7EB;
+                    border-radius: 12px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+                    min-width: 200px;
+                    overflow: hidden;
+                    animation: slideUp 0.2s ease-out both;
+                    z-index: 1100;
+                }
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(6px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+                .ms-dropdown-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 11px 16px;
+                    font-family: 'DM Sans', sans-serif !important;
+                    font-size: 13.5px;
+                    color: #374151;
+                    cursor: pointer;
+                    transition: background 0.15s ease;
+                    text-decoration: none !important;
+                    border: none;
+                    background: transparent;
+                    width: 100%;
+                    text-align: left;
+                }
+                .ms-dropdown-item:hover { background: #F9FAFB; color: #111827; }
+                .ms-dropdown-item.danger { color: #DC2626; }
+                .ms-dropdown-item.danger:hover { background: #FEF2F2; }
+                .ms-dropdown-sep {
+                    height: 1px;
+                    background: #F3F4F6;
+                    margin: 4px 0;
+                }
+                .ms-auth-btns { display: flex; gap: 8px; }
+                .ms-auth-btn {
+                    padding: 7px 18px;
+                    border-radius: 8px;
+                    font-family: 'DM Sans', sans-serif !important;
+                    font-size: 13.5px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    text-decoration: none !important;
+                    display: flex;
+                    align-items: center;
+                }
+                .ms-auth-btn-ghost {
+                    background: transparent;
+                    border: 1.5px solid #E5E7EB;
+                    color: #374151;
+                }
+                .ms-auth-btn-ghost:hover { border-color: #2C7B8F; color: #2C7B8F; }
+                .ms-auth-btn-solid {
+                    background: #2C7B8F;
+                    border: 1.5px solid #2C7B8F;
+                    color: #fff;
+                }
+                .ms-auth-btn-solid:hover { background: #1A5E70; border-color: #1A5E70; }
+            `}</style>
 
-						{isToken() && (
-							<li className="nav-item">
-								<NavLink className="nav-link" to="/my-reviews"> Đánh giá sách </NavLink>
-							</li>
-						)}
+            <nav className='ms-nav'>
+                <div className='ms-nav-inner'>
+                    {/* Logo */}
+                    <Link className='ms-nav-brand' to='/'>
+                        <span className='logo-symbol'>◈</span>
+                        3G Book Store
+                    </Link>
 
-					</ul>
-					{/* <!-- Left links --> */}
-				</div>
-				{/* <!-- Collapsible wrapper --> */}
-				{/* <!-- Right elements --> */}
-				<div className='d-flex align-items-center'>
-					{/* <!-- Shopping Cart --> */}
-					<Link className='text-reset me-3' to='/cart'>
-						<i className='fas fa-shopping-cart'></i>
+                    {/* Nav Links */}
+                    <div className='ms-nav-links'>
+                        <NavLink className={({ isActive }) => `ms-nav-link${isActive ? ' active' : ''}`} to='/'>Trang chủ</NavLink>
+                        <NavLink className={({ isActive }) => `ms-nav-link${isActive ? ' active' : ''}`} to='/products'>Kho sách</NavLink>
+                        <NavLink className={({ isActive }) => `ms-nav-link${isActive ? ' active' : ''}`} to='/about'>Giới thiệu</NavLink>
+                        <NavLink className={({ isActive }) => `ms-nav-link${isActive ? ' active' : ''}`} to='/policy'>Chính sách</NavLink>
+                        {isToken() && <NavLink className={({ isActive }) => `ms-nav-link${isActive ? ' active' : ''}`} to='/feedback'>Feedback</NavLink>}
+                        {isToken() && <NavLink className={({ isActive }) => `ms-nav-link${isActive ? ' active' : ''}`} to='/my-reviews'>Đánh giá</NavLink>}
+                    </div>
 
-					</Link>
+                    {/* Right side */}
+                    <div className='ms-nav-right'>
+                        {/* Cart */}
+                        <Link className='ms-nav-icon-btn' to='/cart' title='Giỏ hàng'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                            {cartCount > 0 && <span className='ms-cart-badge'>{cartCount > 99 ? '99+' : cartCount}</span>}
+                        </Link>
 
-						{!isToken() && (
-						<div>
-							<Link to={"/login"}>
-								<Button>Đăng nhập</Button>
-							</Link>
-							<Link to={"/register"}>
-								<Button>Đăng ký</Button>
-							</Link>
-						</div>
-					)}
+                        {/* Auth */}
+                        {!isToken() ? (
+                            <div className='ms-auth-btns'>
+                                <Link to='/login' className='ms-auth-btn ms-auth-btn-ghost'>Đăng nhập</Link>
+                                <Link to='/register' className='ms-auth-btn ms-auth-btn-solid'>Đăng ký</Link>
+                            </div>
+                        ) : (
+                            <AvatarDropdown navigate={navigate} />
+                        )}
+                    </div>
+                </div>
+            </nav>
+        </>
+    );
+};
 
-					{isToken() && (
-						<>
+/* Separate component to keep hooks clean */
+const AvatarDropdown = ({ navigate }) => {
+    const [open, setOpen] = React.useState(false);
+    const ref = React.useRef(null);
 
-							{/* <!-- Avatar --> */}
-							<div className='dropdown'>
-								<a
-									className='dropdown-toggle d-flex align-items-center hidden-arrow'
-									href='#'
-									id='navbarDropdownMenuAvatar'
-									role='button'
-									data-mdb-toggle='dropdown'
-									aria-expanded='false'
-								>
-									<Avatar
-										style={{ fontSize: "14px" }}
-										alt={getLastNameByToken()?.toUpperCase()}
-										src={getAvatarByToken() || "/images/user/user-default.jpg"}
-										sx={{ width: 30, height: 30 }}
-									/>
-								</a>
-								<ul
-									className='dropdown-menu dropdown-menu-end'
-									aria-labelledby='navbarDropdownMenuAvatar'
-								>
-									<li>
-										<Link to={"/profile"} className='dropdown-item'>
-											Thông tin cá nhân
-										</Link>
-									</li>
-									<li>
-										<Link
-											className='dropdown-item'
-											to='/my-favorite-books'
-										>
-											Sách yêu thích của tôi
-										</Link>
-									</li>
-									{getRoleByToken() === "ADMIN" && (
-										<li>
-											<Link
-												className='dropdown-item'
-												to='/admin/books'
-											>
-												Quản lý
-											</Link>
-										</li>
-									)}
-									<li>
-										<a
-											className='dropdown-item'
-											style={{ cursor: "pointer" }}
-											onClick={() => {
-												logout(navigate)
-											}}
-										>
-											Đăng xuất
-										</a>
-									</li>
-								</ul>
-							</div>
-						</>
-					)}
-					</div>
-				{/* <!-- Right elements --> */}
-			</div>
-			{/* <!-- Container wrapper --> */}
-		</nav>
-	);
+    React.useEffect(() => {
+        const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    return (
+        <div className='ms-avatar-wrap' ref={ref}>
+            <button className='ms-avatar-trigger' onClick={() => setOpen(!open)}>
+                <Avatar
+                    alt={getLastNameByToken()?.toUpperCase()}
+                    src={getAvatarByToken() || "/images/user/user-default.jpg"}
+                    sx={{ width: 28, height: 28, fontSize: '12px' }}
+                />
+                <span style={{ fontWeight: 500, color: '#374151', fontSize: '13px', fontFamily: 'DM Sans, sans-serif' }}>
+                    {getLastNameByToken()}
+                </span>
+                <span className='ms-avatar-chevron' style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▾</span>
+            </button>
+
+            {open && (
+                <div className='ms-dropdown-menu'>
+                    <Link to='/profile' className='ms-dropdown-item' onClick={() => setOpen(false)}>
+                        <span style={{ fontSize: '14px', opacity: 0.6 }}>◯</span> Tài khoản của tôi
+                    </Link>
+                    <Link to='/my-favorite-books' className='ms-dropdown-item' onClick={() => setOpen(false)}>
+                        <span style={{ fontSize: '14px', opacity: 0.6 }}>♡</span> Sách yêu thích
+                    </Link>
+                    {getRoleByToken() === "ADMIN" && (
+                        <Link to='/admin/books' className='ms-dropdown-item' onClick={() => setOpen(false)}>
+                            <span style={{ fontSize: '14px', opacity: 0.6 }}>◈</span> Quản lý
+                        </Link>
+                    )}
+                    <div className='ms-dropdown-sep' />
+                    <button className='ms-dropdown-item danger' onClick={() => { setOpen(false); logout(navigate); }}>
+                        <span style={{ fontSize: '14px', opacity: 0.7 }}>→</span> Đăng xuất
+                    </button>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default Navbar;
